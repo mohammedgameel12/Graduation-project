@@ -1,0 +1,141 @@
+[
+  {
+    "id": "web_comment",
+    "type": "comment",
+    "z": "machine_tab",
+    "name": "WEB BRIDGE for dashboard.html  ->  ws://<this PC>:1880/ws/twin",
+    "info": "Import this INTO the 'Omron machine link' tab (flow context is per tab).\n\nPublishes the decoded machine state (+ plc_alive) as JSON to every connected dashboard: once per second and on every change.\nCommands from the dashboard are ignored unless ENABLE_REMOTE = true inside 'Web command'.",
+    "x": 400,
+    "y": 900,
+    "wires": []
+  },
+  {
+    "id": "web_ws_srv",
+    "type": "websocket-listener",
+    "path": "/ws/twin",
+    "wholemsg": "false"
+  },
+  {
+    "id": "web_tick",
+    "type": "inject",
+    "z": "machine_tab",
+    "name": "every 0.25 s",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "0.25",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 960,
+    "wires": [
+      [
+        "web_pub"
+      ]
+    ]
+  },
+  {
+    "id": "web_pub",
+    "type": "function",
+    "z": "machine_tab",
+    "name": "Web publish (state + plc_alive)",
+    "func": "// Decodes the Modbus register table (same layout as 'Decode machine state') and publishes it to every dashboard\n// as JSON: on every change and at least once per second, together with plc_alive.\nconst hr = flow.get('hr') || {};\nconst w = r => (hr[r] || 0) & 0xFFFF;\nconst bit = (r, n) => ((w(r) >> n) & 1) === 1;\nconst bcd = r => parseInt(w(r).toString(16), 10) || 0;   // BCD -> decimal\nconst stepNames = ['zero','first','second','third','fourth','fifth','sixth','seventh','eighth','nineth'];\n\nconst state = {\n  inputs: {\n    stop: bit(10,0), auto: bit(10,1), right_proximity: bit(10,2), left_proximity: bit(10,3),\n    entrance: bit(10,4), down_screen_sensor: bit(10,5), start: bit(10,6), screen_up: bit(10,7),\n    manual: bit(10,8), screen_up_2: bit(10,9), sys_on: bit(10,10), safety_sensor: bit(10,11),\n    Drive_error: bit(11,0)\n  },\n  outputs: {\n    forward: bit(12,0), reverse: bit(12,1), stop_tiles: bit(12,2), screen_up_out: bit(12,3),\n    clamp: bit(12,4), piston: bit(12,5), start_light: bit(12,6), tiles_wait: bit(12,7),\n    stop_light: bit(13,0), screen_out_down: bit(13,1)\n  },\n  active_steps: stepNames.filter((n, i) => bit(14, i)),\n  flags: {\n    tiles_arrived: bit(15,10), looping_marker: bit(15,11), Reset_marker: bit(15,15),\n    entry_timer_out: bit(15,1), forward_timer_out: bit(15,7), reverse_timer_out: bit(15,9),\n    unclamp_timer_out: bit(15,12), Screen_up_flag: bit(15,6),\n    forward_marker: bit(16,1), reverse_marker: bit(16,2)\n  },\n  alarms: {\n    over_run_alarm: bit(16,3), system_connection_alarm: bit(16,4), Drive_alarm: bit(16,5)\n  },\n  counters: { done_loops: w(17), desired_loops: w(18), processed_tiles: w(19) },\n  timers_sec: {\n    entry_timer: bcd(20) / 10, delay_time_left: bcd(21) / 10,\n    Delay_Timer_R: bcd(22) / 10, Safty_Timer: bcd(23) / 10\n  }\n};\nif (!flow.get('hr')) { node.status({fill:'grey', shape:'ring', text:'no PLC data yet'}); return null; }\nconst now = Date.now();\nconst alive = (now - (flow.get('lastHb') || 0)) < 3000;\nconst key = JSON.stringify(state) + alive;\nif (key === context.get('key') && now - (context.get('t') || 0) < 1000) return null;\ncontext.set('key', key); context.set('t', now);\nconst out = Object.assign({}, state, { plc_alive: alive, ts: now });\nflow.set('webSnapshot', out);\nnode.status({fill: alive ? 'green' : 'red', shape:'dot', text: alive ? 'PLC alive' : 'PLC link lost'});\nreturn { payload: out };",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 960,
+    "wires": [
+      [
+        "web_ws_out"
+      ]
+    ]
+  },
+  {
+    "id": "web_ws_out",
+    "type": "websocket out",
+    "z": "machine_tab",
+    "name": "to dashboard",
+    "server": "web_ws_srv",
+    "client": "",
+    "x": 700,
+    "y": 960,
+    "wires": []
+  },
+  {
+    "id": "web_status",
+    "type": "status",
+    "z": "machine_tab",
+    "name": "node status events",
+    "scope": null,
+    "x": 130,
+    "y": 1020,
+    "wires": [
+      [
+        "web_hb"
+      ]
+    ]
+  },
+  {
+    "id": "web_hb",
+    "type": "function",
+    "z": "machine_tab",
+    "name": "PLC heartbeat",
+    "func": "// Every Modbus request/reply handled by 'Modbus Slave (id 1)' sets its status to 'FC3 reg ..' / 'FC16 reg ..'.\n// That is our PLC heartbeat.\nconst s = msg.status || {};\nif (s.source && s.source.id === 'f_slave' && /^FC/.test(String(s.text || ''))) flow.set('lastHb', Date.now());\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 1020,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "web_ws_in",
+    "type": "websocket in",
+    "z": "machine_tab",
+    "name": "from dashboard",
+    "server": "web_ws_srv",
+    "client": "",
+    "x": 130,
+    "y": 1090,
+    "wires": [
+      [
+        "web_cmd"
+      ]
+    ]
+  },
+  {
+    "id": "web_cmd",
+    "type": "function",
+    "z": "machine_tab",
+    "name": "Web command (remote OFF by default)",
+    "func": "// Commands from the web dashboard.\n// SAFETY: remote commands are DISABLED by default. Set ENABLE_REMOTE = true only when you accept that anybody who can\n// reach this Node-RED port can press Start / Stop / Reset on the REAL machine (put Node-RED behind a login / VPN first).\nconst ENABLE_REMOTE = false;\nconst ALLOWED_BITS  = [0, 1, 5];   // register 0:  bit 0 Start | bit 1 Stop | bit 5 Reset   (2/3/4 = jog fwd/rev/screen are NOT allowed)\nconst LOOPS_REG     = 1;           // register holding the desired number of loops (the PLC program must read it)\nconst PULSE_MS      = 1000;\n\nlet p = msg.payload;\nif (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { return null; } }\nif (!p || typeof p !== 'object') return null;\n\n// the dashboard asks for the current state right after it connects\nif (p.cmd === 'hello') {\n  const snap = flow.get('webSnapshot');\n  return snap ? { payload: snap, _session: msg._session } : null;\n}\n\nif (!ENABLE_REMOTE) {\n  node.warn('Remote command ignored (ENABLE_REMOTE = false): ' + JSON.stringify(p));\n  node.status({fill:'yellow', shape:'ring', text:'remote disabled'});\n  return null;\n}\n\nif (p.cmd === 'bit' && ALLOWED_BITS.includes(Number(p.bit))) {\n  const b = Number(p.bit);\n  const setBit = on => { const hr = flow.get('hr') || {}; let v = hr[0] || 0; v = on ? (v | (1 << b)) : (v & ~(1 << b)); hr[0] = v & 0xFFFF; flow.set('hr', hr); };\n  setBit(true);\n  node.status({fill:'yellow', shape:'dot', text:'bit ' + b + ' ON'});\n  setTimeout(() => { setBit(false); node.status({}); }, PULSE_MS);\n} else if (p.cmd === 'loops') {\n  const n = Math.max(0, Math.min(9999, Math.round(Number(p.value))));\n  if (Number.isFinite(n)) { const hr = flow.get('hr') || {}; hr[LOOPS_REG] = n & 0xFFFF; flow.set('hr', hr); node.status({fill:'green', shape:'dot', text:'loops = ' + n}); }\n}\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 1090,
+    "wires": [
+      [
+        "web_ws_out"
+      ]
+    ]
+  }
+]

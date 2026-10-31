@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DK3 Extrem · Tile Printing Line – Control Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c0e; --s1:#13151a; --s2:#1a1d23; --s3:#23272f; --line:#2b3039; --line2:#3a404b;
+  --txt:#eef0f3; --mut:#8d95a3; --dim:#5d6572;
+  --acc:#ffc400; --acc2:#ffdd55; --accd:#7a5f00;
+  --ok:#3ddc84; --bad:#ff4d4d; --info:#4da3ff;
+  --side:224px; --r:2px;
+  --font:'Montserrat',system-ui,'Segoe UI',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums}
+a{color:var(--acc);text-decoration:none}
+button{font-family:inherit}
+::selection{background:var(--acc);color:#000}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:var(--line2)}::-webkit-scrollbar-track{background:var(--s1)}
+
+/* ---------- sidebar ---------- */
+#side{position:fixed;left:0;top:0;bottom:0;width:var(--side);background:var(--s1);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;padding:20px 18px 18px;border-bottom:1px solid var(--line)}
+.mark{width:40px;height:40px;background:var(--acc);color:#000;display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:-.5px;clip-path:polygon(0 0,100% 0,100% 70%,70% 100%,0 100%)}
+.brand b{display:block;font-size:14px;font-weight:800;letter-spacing:.04em}
+.brand small{color:var(--mut);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+nav{padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+nav a{display:flex;align-items:center;gap:12px;padding:11px 12px;color:var(--mut);font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border-left:3px solid transparent;transition:.15s}
+nav a svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:square}
+nav a:hover{color:var(--txt);background:var(--s2)}
+nav a.on{color:var(--acc);background:linear-gradient(90deg,#ffc40022,transparent);border-left-color:var(--acc)}
+.side-foot{margin-top:auto;padding:14px 18px 18px;border-top:1px solid var(--line);font-size:11px;color:var(--dim)}
+.side-foot .hz{height:6px;margin-bottom:12px;background:repeating-linear-gradient(-45deg,var(--acc) 0 7px,#111 7px 14px)}
+.side-foot b{color:var(--mut);font-weight:600}
+
+/* ---------- top bar ---------- */
+#app{margin-left:var(--side)}
+#top{position:sticky;top:0;z-index:15;background:#0b0c0eee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+#top .row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 28px}
+#top h1{margin:0;font-size:17px;font-weight:800;letter-spacing:.02em}
+#top h1 span{color:var(--acc)}
+#top small{display:block;color:var(--mut);font-size:11px;letter-spacing:.06em;font-weight:500}
+#top .hz{height:4px;background:repeating-linear-gradient(-45deg,var(--acc) 0 8px,#0b0c0e 8px 16px);opacity:.9}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+#conn{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--line2);background:var(--s2);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#conn::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--line2);background:var(--s2);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#clock{font-weight:700;color:var(--txt);min-width:78px;text-align:right;font-size:15px}
+#clock small{font-size:10px;color:var(--mut);font-weight:500;letter-spacing:.06em}
+.ibtn{width:36px;height:36px;display:grid;place-items:center;background:var(--s2);border:1px solid var(--line2);color:var(--txt);cursor:pointer}
+.ibtn:hover{border-color:var(--acc);color:var(--acc)}
+.ibtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+main{padding:26px 28px 40px;display:flex;flex-direction:column;gap:34px;max-width:1900px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin:0 0 14px}
+.sec-h h2{margin:0;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.sec-h h2::before{content:'';display:inline-block;width:10px;height:10px;background:var(--acc);margin-right:10px}
+.sec-h span{color:var(--dim);font-size:12px;font-weight:500}
+.sec-h .line{flex:1;height:1px;background:var(--line)}
+
+/* ---------- cards ---------- */
+.card{background:var(--s1);border:1px solid var(--line);position:relative;min-width:0}
+.card::before{content:'';position:absolute;left:-1px;top:-1px;width:3px;height:26px;background:var(--acc)}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px 12px 18px;border-bottom:1px solid var(--line)}
+.ch h3{margin:0;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.ch .sub{color:var(--mut);font-size:11px;font-weight:500}
+.cb{padding:16px 18px}
+.grid{display:grid;gap:16px}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* KPI */
+.kpi{padding:16px 18px 14px}
+.kpi .l{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.kpi .v{font-size:30px;font-weight:800;letter-spacing:-.5px;margin:6px 0 2px;line-height:1.1;white-space:nowrap}
+.kpi .v small{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:0;margin-left:4px}
+.kpi .s{font-size:11px;color:var(--mut);font-weight:500;min-height:16px}
+.kpi.status .v{font-size:24px}
+.kpi.run .v{color:var(--ok)} .kpi.stop .v{color:var(--txt)} .kpi.fault .v{color:var(--bad)} .kpi.fault{border-color:#ff4d4d77}
+.kpi .bar{height:3px;background:var(--s3);margin-top:10px}.kpi .bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* 3D twin */
+.twin-row{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+#twinCard{display:flex;flex-direction:column;background:#0d0f12}
+#twinCard:fullscreen{width:100vw;height:100vh;border:0}
+.vwrap{position:relative;height:640px;flex:1;min-height:420px;background:radial-gradient(ellipse at 50% 30%,#1b1e24,#0d0f12 70%)}
+#twinCard:fullscreen .vwrap{height:auto}
+#view{position:absolute;inset:0;cursor:grab;touch-action:none}
+#view:active{cursor:grabbing}
+#view canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;pointer-events:none;z-index:2}
+.hud.tl{left:14px;top:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.hud.bl{left:14px;bottom:12px;color:var(--dim);font-size:11px;font-weight:500}
+.hud.br{right:14px;bottom:12px;display:flex;gap:14px}
+.hud .tag2{background:#0b0c0ecc;border:1px solid var(--line2);padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.hud .tag2 b{color:var(--acc);font-weight:800}
+.hud .tag2.big{font-size:12px;color:var(--txt)}
+.hud .stat{background:#0b0c0ecc;border:1px solid var(--line2);padding:6px 12px;text-align:right}
+.hud .stat small{display:block;font-size:9px;letter-spacing:.14em;color:var(--mut);font-weight:700;text-transform:uppercase}
+.hud .stat b{font-size:20px;font-weight:800}
+.vbar{display:flex;gap:6px;flex-wrap:wrap}
+.vbtn{background:var(--s2);border:1px solid var(--line2);color:var(--mut);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:7px 10px;cursor:pointer}
+.vbtn:hover{color:#000;background:var(--acc);border-color:var(--acc)}
+.fsctl{display:none;position:absolute;right:14px;top:14px;z-index:5;width:290px;background:#0b0c0eee;border:1px solid var(--line2);border-top:3px solid var(--acc);padding:12px;gap:10px;flex-direction:column}
+#twinCard:fullscreen .fsctl{display:flex}
+.fsrow{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase}
+.fsrow .btn{flex:1;padding:11px 4px}
+.fsrow input[type=number]{background:var(--bg);border:1px solid var(--line2);color:var(--txt);padding:6px 8px;font:700 13px var(--font);width:70px;text-align:right}
+#twinCard:fullscreen .hud.br{right:auto;left:14px;bottom:44px}
+#label{position:fixed;padding:4px 9px;font-size:11px;font-weight:600;background:#000d;border:1px solid var(--acc);color:var(--txt);pointer-events:none;display:none;z-index:50}
+#err{display:none;position:fixed;left:240px;right:14px;bottom:14px;z-index:90;padding:12px;background:#7d1f16;color:#fff;font:12px/1.4 monospace;white-space:pre-wrap;max-height:40vh;overflow:auto}
+
+/* control */
+.btnrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{border:1px solid var(--line2);background:var(--s2);color:var(--txt);padding:13px 6px;font-weight:800;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:.12s}
+.btn:hover{border-color:var(--txt)}
+.btn.go{background:var(--acc);border-color:var(--acc);color:#000}.btn.go:hover{background:var(--acc2)}
+.btn.stp{background:#2a1416;border-color:#7a2a2f;color:#ff8d8d}.btn.stp:hover{background:#3a1b1e}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.fld{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;font-size:12px;color:var(--mut);font-weight:600}
+.fld input[type=number],.fld input[type=text]{background:var(--bg);border:1px solid var(--line2);color:var(--txt);padding:7px 9px;font:600 13px var(--font);width:96px;text-align:right}
+.fld input:focus{outline:1px solid var(--acc)}
+.sw{position:relative;width:42px;height:22px;display:inline-block}
+.sw input{opacity:0;width:0;height:0}.sw i{position:absolute;inset:0;background:var(--s3);border:1px solid var(--line2);cursor:pointer;transition:.15s}
+.sw i::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;background:var(--mut);transition:.15s}
+.sw input:checked+i{background:#4a3a00;border-color:var(--acc)}.sw input:checked+i::after{left:23px;background:var(--acc)}
+.note{font-size:11px;color:var(--dim);margin-top:10px;font-weight:500}
+.note b{color:var(--mut)}
+
+/* sequence */
+.steps{display:grid;gap:4px;margin-top:4px}
+.step{display:flex;align-items:center;gap:10px;padding:6px 8px;background:var(--s2);border-left:3px solid var(--line2);color:var(--mut);font-size:11px;font-weight:600;transition:.15s}
+.step i{font-style:normal;font-weight:800;width:24px;color:var(--dim)}
+.step.on{background:#2a2200;border-left-color:var(--acc);color:var(--txt)}.step.on i{color:var(--acc)}
+.ringbox{display:flex;align-items:center;gap:16px}
+.ring{width:84px;height:84px;transform:rotate(-90deg);flex:none}
+.ring circle{fill:none;stroke-width:3.4}.ring .bg{stroke:var(--s3)}.ring .fg{stroke:var(--acc);stroke-linecap:butt;transition:stroke-dasharray .5s}
+.ringbox .rt b{display:block;font-size:26px;font-weight:800;line-height:1}.ringbox .rt span{font-size:11px;color:var(--mut);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.ringtxt{position:relative;width:84px;height:84px;flex:none}.ringtxt .ring{position:absolute;inset:0}.ringtxt b{position:absolute;inset:0;display:grid;place-items:center;font-size:17px;font-weight:800}
+.alist{display:grid;gap:6px;font-size:12px;font-weight:600}
+.alist .it{display:flex;gap:10px;align-items:center;padding:8px 10px;background:var(--s2);border-left:3px solid var(--line2);color:var(--mut)}
+.alist .it.act{border-left-color:var(--bad);background:#2a1214;color:#ffb0b0}
+.alist .it::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--dim)}.alist .it.act::before{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+
+/* analytics */
+canvas.ch2{display:block;width:100%;height:190px}
+canvas.tl{display:block;width:100%;height:46px}
+.legend{display:flex;gap:16px;font-size:11px;color:var(--mut);font-weight:600;margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.sumtbl{width:100%;border-collapse:collapse;font-size:12px}
+.sumtbl td{padding:8px 0;border-bottom:1px solid var(--line);color:var(--mut);font-weight:600}.sumtbl td:last-child{text-align:right;color:var(--txt);font-weight:700}
+.sumtbl tr:last-child td{border:0}
+
+/* I/O */
+.iogrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.tag{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px;font-weight:600}
+.tag:last-child{border:0}.tag i{color:var(--dim);font-style:normal;font-size:10px;margin-left:8px;font-weight:600}
+.dot{width:12px;height:12px;background:var(--s3);border:1px solid var(--line2);flex:none}
+.dot.on{background:var(--ok);border-color:var(--ok);box-shadow:0 0 9px #3ddc8488}
+.dot.bad.on{background:var(--bad);border-color:var(--bad);box-shadow:0 0 9px #ff4d4d88}
+#outputs .dot.on{background:var(--acc);border-color:var(--acc);box-shadow:0 0 9px #ffc40088}
+.timers{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.tbox{background:var(--s1);border:1px solid var(--line);padding:12px 16px}.tbox small{display:block;font-size:10px;letter-spacing:.14em;color:var(--mut);font-weight:700;text-transform:uppercase}.tbox b{font-size:22px;font-weight:800}
+
+/* log */
+.tools2{display:flex;gap:8px;align-items:center}
+select.sel{background:var(--bg);border:1px solid var(--line2);color:var(--txt);padding:7px 9px;font:600 11px var(--font)}
+.logwrap{max-height:340px;overflow:auto}
+table.log{width:100%;border-collapse:collapse;font-size:12px}
+table.log th{position:sticky;top:0;background:var(--s2);text-align:left;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding:9px 14px;font-weight:700}
+table.log td{padding:9px 14px;border-bottom:1px solid var(--line);color:#c9ced6;font-weight:500}
+table.log td:first-child{color:var(--mut);white-space:nowrap;width:1%}
+.bdg{display:inline-block;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:1px solid}
+.bdg.info{color:var(--info);border-color:#4da3ff55}.bdg.ok{color:var(--ok);border-color:#3ddc8455}.bdg.warn{color:var(--acc);border-color:#ffc40055}.bdg.err{color:var(--bad);border-color:#ff4d4d66}
+
+/* docs / gallery */
+.docs-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.pdfbox{height:680px;background:#0d0f12;position:relative}
+.pdfbox object,.pdfbox iframe{width:100%;height:100%;border:0;display:block}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:var(--mut);font-size:13px;font-weight:500}
+.empty svg{width:54px;height:54px;stroke:var(--acc);fill:none;stroke-width:1.4;margin-bottom:12px}
+.empty b{display:block;color:var(--txt);font-size:15px;margin-bottom:6px}
+.empty code{background:var(--s2);border:1px solid var(--line2);padding:2px 7px;color:var(--acc2);font-size:12px}
+.file{display:inline-block;cursor:pointer}.file input{display:none}
+.doclist{display:grid;gap:8px}
+.doc{display:flex;gap:12px;align-items:center;padding:10px;background:var(--s2);border:1px solid var(--line);cursor:pointer;transition:.12s}
+.doc:hover{border-color:var(--acc)}
+.doc img{width:78px;height:54px;object-fit:cover;background:#fff;flex:none}
+.doc b{display:block;font-size:12px;font-weight:700}.doc span{font-size:11px;color:var(--mut)}
+.spec{width:100%;border-collapse:collapse;font-size:12px}.spec td{padding:9px 0;border-bottom:1px solid var(--line);color:var(--mut);font-weight:600;vertical-align:top}.spec td:last-child{text-align:right;color:var(--txt);font-weight:700;padding-left:14px}.spec tr:last-child td{border:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{background:var(--s2);border:1px solid var(--line2);color:var(--mut);padding:6px 12px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.chipb.on{background:var(--acc);border-color:var(--acc);color:#000}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.gi{position:relative;aspect-ratio:4/3;background:var(--s2);border:1px solid var(--line);overflow:hidden;cursor:zoom-in}
+.gi img{width:100%;height:100%;object-fit:cover;transition:.3s;display:block}
+.gi:hover img{transform:scale(1.06)}.gi:hover{border-color:var(--acc)}
+.gi span{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 8px;background:linear-gradient(transparent,#000d);font-size:11px;font-weight:700}
+video{width:100%;display:block;background:#000;max-height:560px}
+#lb{position:fixed;inset:0;background:#000e;z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:24px}
+#lb.on{display:flex}#lb img{max-width:92vw;max-height:80vh;object-fit:contain;background:#fff}
+#lb p{margin:0;color:var(--txt);font-weight:600}#lb .x{position:absolute;right:20px;top:16px}
+#lb .nv{position:absolute;top:50%;transform:translateY(-50%)}
+dialog{background:var(--s1);color:var(--txt);border:1px solid var(--acc);padding:0;width:min(480px,92vw);font-family:var(--font)}
+dialog::backdrop{background:#000a}
+dialog .cb{display:grid;gap:4px}
+dialog .fld input[type=text]{width:260px;text-align:left}
+#toast{position:fixed;right:20px;bottom:20px;display:grid;gap:8px;z-index:120}
+#toast div{background:var(--s2);border:1px solid var(--acc);border-left-width:4px;padding:11px 16px;font-size:12px;font-weight:600;animation:in .2s}
+@keyframes in{from{transform:translateY(8px);opacity:0}}
+footer{padding:18px 28px 28px;color:var(--dim);font-size:11px;border-top:1px solid var(--line);margin:0 28px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media(max-width:1280px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}.twin-row,.docs-row{grid-template-columns:1fr}.iogrid{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){
+  :root{--side:0px}
+  #side{position:sticky;width:100%;height:auto;flex-direction:row;align-items:center;border-right:0;border-bottom:1px solid var(--line)}
+  .brand{border:0;padding:8px 12px}.brand div{display:none}nav{flex-direction:row;padding:0;overflow-x:auto}nav a{border-left:0;border-bottom:3px solid transparent;padding:14px 12px}nav a.on{border-bottom-color:var(--acc)}nav a span{display:none}.side-foot{display:none}
+  #app{margin-left:0}#top{top:56px}main{padding:18px 14px}#top .row{padding:10px 14px}.g3,.g2{grid-template-columns:1fr}.g6{grid-template-columns:repeat(2,minmax(0,1fr))}.iogrid{grid-template-columns:1fr}.timers{grid-template-columns:1fr 1fr}.vwrap{height:440px}.pdfbox{height:480px}#err{left:14px}
+  html{scroll-padding-top:150px}
+}
+</style>
+</head>
+<body>
+<div id="err"></div>
+<div id="toast"></div>
+
+<aside id="side">
+  <div class="brand"><div class="mark">DK3</div><div><b>EXTREM</b><small>Tile printing line</small></div></div>
+  <nav id="nav">
+    <a href="#overview" class="on"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></svg><span>Overview</span></a>
+    <a href="#twin"><svg viewBox="0 0 24 24"><path d="M12 2l9 5v10l-9 5-9-5V7zM12 12l9-5M12 12v10M12 12L3 7"/></svg><span>3D Twin</span></a>
+    <a href="#analytics"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 17v-6M11 17V6M16 17v-9M21 17v-4"/></svg><span>Analytics</span></a>
+    <a href="#io"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6"/></svg><span>I/O Monitor</span></a>
+    <a href="#log"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Event log</span></a>
+    <a href="#docs"><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h8"/></svg><span>Documents</span></a>
+    <a href="#gallery"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M16 9h.01"/></svg><span>Gallery</span></a>
+  </nav>
+  <div class="side-foot"><div class="hz"></div><b>Graduation Project</b><br>PLC control &amp; IIoT digital twin</div>
+</aside>
+
+<div id="app">
+<header id="top">
+  <div class="row">
+    <div><h1>Tile Printing Line <span>/</span> Control Dashboard</h1><small>DK3 Extrem screen printer · OMRON CP1E · NS5 HMI · Yaskawa V1000 VFD</small></div>
+    <div class="tools">
+      <div id="conn">SIMULATION</div>
+      <div class="chip" id="remChip">Remote: OFF</div>
+      <div id="clock">--:--:-- <small id="date"></small></div>
+      <button class="ibtn" id="btnSet" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>
+    </div>
+  </div>
+  <div class="hz"></div>
+</header>
+
+<main>
+<!-- ================= OVERVIEW ================= -->
+<section id="overview">
+  <div class="sec-h"><h2>Overview</h2><span id="ovSub">Live production indicators</span><div class="line"></div></div>
+  <div class="grid g6">
+    <div class="card kpi status stop" id="kStatus"><div class="l">Machine status</div><div class="v" id="kStatusV">STOPPED</div><div class="s" id="kStatusS">Mode –</div></div>
+    <div class="card kpi"><div class="l">Tiles processed</div><div class="v" id="kTiles">0</div><div class="s" id="kTilesS">this session</div></div>
+    <div class="card kpi"><div class="l">Throughput</div><div class="v"><span id="kThr">0</span><small>tiles/h</small></div><div class="s" id="kThrS">waiting for data</div></div>
+    <div class="card kpi"><div class="l">Avg cycle time</div><div class="v"><span id="kCyc">–</span><small>s</small></div><div class="s" id="kCycS">best – · last –</div></div>
+    <div class="card kpi"><div class="l">Availability</div><div class="v"><span id="kAv">0</span><small>%</small></div><div class="s">running time / session</div><div class="bar"><i id="kAvBar"></i></div></div>
+    <div class="card kpi" id="kAlarm"><div class="l">Active alarms</div><div class="v" id="kAl">0</div><div class="s" id="kAlS">All clear</div></div>
+  </div>
+</section>
+
+<!-- ================= 3D TWIN ================= -->
+<section id="twin">
+  <div class="sec-h"><h2>3D Digital Twin</h2><span>Drag to orbit · right-drag to pan · click the view, then scroll to zoom</span><div class="line"></div></div>
+  <div class="twin-row">
+    <div class="card" id="twinCard">
+      <div class="ch"><h3>DK3 Extrem · printing station</h3>
+        <div class="vbar">
+          <button class="vbtn" data-view="iso">Iso</button><button class="vbtn" data-view="front">Front</button><button class="vbtn" data-view="side">Side</button><button class="vbtn" data-view="top">Top</button>
+          <button class="vbtn" id="btnFs">⛶ Full screen</button>
+        </div>
+      </div>
+      <div class="vwrap">
+        <div id="view"></div>
+        <div id="label"></div>
+        <div class="hud tl"><div class="tag2 big" id="hudMode">SIMULATION</div><div class="tag2" id="hudState">Stopped</div></div>
+        <div class="hud br"><div class="stat"><small>Tiles</small><b id="hudTiles">0</b></div><div class="stat"><small>Loops</small><b id="hudLoops">0 / 0</b></div></div>
+        <div class="hud bl">Hover any part to see its name</div>
+        <div class="fsctl">
+          <div class="fsrow"><button class="btn go" id="fsStart">Start</button><button class="btn stp" id="fsStop">Stop</button><button class="btn" id="fsReset">Reset</button></div>
+          <div class="fsrow"><span>Rounds (n)</span><input type="number" id="fsNr" min="1" max="99" value="2"><button class="vbtn" id="fsSet">Set</button></div>
+          <div class="fsrow" id="fsSafeRow"><span>Safety trip (sim)</span><button class="vbtn" id="fsSafe">Trip / clear</button></div>
+          <div class="fsrow" id="fsRemRow"><span>Remote control</span><label class="sw"><input type="checkbox" id="fsRemote"><i></i></label></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:16px">
+      <div class="card"><div class="ch"><h3>Machine control</h3><span class="sub" id="ctlMode">Simulation</span></div>
+        <div class="cb">
+          <div class="btnrow"><button class="btn go" id="bStart">Start</button><button class="btn stp" id="bStop">Stop</button><button class="btn" id="bReset">Reset</button></div>
+          <div class="fld"><span>Printing rounds (n)</span><span><input type="number" id="nr" min="1" max="99" value="2"> <button class="vbtn" id="bLoops">Set</button></span></div>
+          <div class="fld" id="safeRow"><span>Simulate safety trip</span><button class="vbtn" id="bSafe">Trip / clear</button></div>
+          <div class="fld" id="remRow"><span>Remote control of real machine</span><label class="sw"><input type="checkbox" id="remote"><i></i></label></div>
+          <div class="note" id="ctlNote">In <b>simulation</b> the buttons drive the virtual machine. When Node-RED is connected they send commands to the real PLC (remote control must be enabled on both sides).</div>
+        </div>
+      </div>
+      <div class="card"><div class="ch"><h3>Process sequence</h3><span class="sub">SFC S0 – S9</span></div>
+        <div class="cb">
+          <div class="ringbox" style="margin-bottom:12px">
+            <div class="ringtxt"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fg" id="rLoop" cx="18" cy="18" r="15.9155" stroke-dasharray="0 100"/></svg><b id="rLoopT">0%</b></div>
+            <div class="rt"><b id="loopTxt">0 / 0</b><span>loops of current tile</span></div>
+          </div>
+          <div class="steps" id="steps"></div>
+        </div>
+      </div>
+      <div class="card"><div class="ch"><h3>Alarms</h3><span class="sub" id="alSub">0 active</span></div><div class="cb"><div class="alist" id="alList"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ANALYTICS ================= -->
+<section id="analytics">
+  <div class="sec-h"><h2>Analytics</h2><span>Calculated live in the browser from the PLC data</span><div class="line"></div></div>
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card"><div class="ch"><h3>Cycle time per tile</h3><span class="sub">last 30 tiles · running time only</span></div><div class="cb"><canvas class="ch2" id="cCycle"></canvas>
+      <div class="legend"><span><i style="background:var(--acc)"></i>Cycle time</span><span><i style="background:var(--ok)"></i>Target</span></div></div></div>
+    <div class="card"><div class="ch"><h3>Throughput</h3><span class="sub">tiles per minute · last 30 min</span></div><div class="cb"><canvas class="ch2" id="cThr"></canvas>
+      <div class="legend"><span><i style="background:var(--info)"></i>Tiles / min</span></div></div></div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="ch"><h3>Machine state timeline</h3><span class="sub">last 10 min</span></div><div class="cb"><canvas class="tl" id="cTl"></canvas>
+      <div class="legend"><span><i style="background:var(--ok)"></i>Running</span><span><i style="background:#3a3f48"></i>Stopped</span><span><i style="background:var(--bad)"></i>Fault</span></div>
+      <div style="margin-top:18px" class="ringbox">
+        <div class="ringtxt"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9155"/><circle class="fg" id="rPerf" cx="18" cy="18" r="15.9155" stroke-dasharray="0 100" style="stroke:var(--ok)"/></svg><b id="rPerfT">–</b></div>
+        <div class="rt"><b style="font-size:15px">Performance</b><span>target cycle <span id="tgtTxt">15</span> s</span></div>
+      </div></div></div>
+    <div class="card"><div class="ch"><h3>Session summary</h3><span class="sub" id="sessSub">since page load</span></div><div class="cb"><table class="sumtbl" id="sumTbl"></table></div></div>
+    <div class="card"><div class="ch"><h3>Printing cycle</h3><span class="sub">VFD · brush drive</span></div><div class="cb">
+      <table class="sumtbl">
+        <tr><td>Drive state</td><td id="vState">STOP</td></tr>
+        <tr><td>Carriage position</td><td id="vPos">Left</td></tr>
+        <tr><td>Screen</td><td id="vScr">Up</td></tr>
+        <tr><td>Clamp / Stop-tiles valve</td><td id="vVal">Off / Off</td></tr>
+        <tr><td>Brush piston</td><td id="vPis">Up</td></tr>
+        <tr><td>Drive fault</td><td id="vErr">None</td></tr>
+      </table></div></div>
+  </div>
+</section>
+
+<!-- ================= I/O ================= -->
+<section id="io">
+  <div class="sec-h"><h2>I/O Monitor</h2><span>OMRON CP1E · addresses from the I/O table</span><div class="line"></div></div>
+  <div class="iogrid">
+    <div class="card"><div class="ch"><h3>Inputs</h3></div><div class="cb" id="inputs"></div></div>
+    <div class="card"><div class="ch"><h3>Outputs</h3></div><div class="cb" id="outputs"></div></div>
+    <div class="card"><div class="ch"><h3>Alarms</h3></div><div class="cb" id="alarms"></div></div>
+  </div>
+  <div class="timers">
+    <div class="tbox"><small>Entry timer</small><b id="t_te">0.0 s</b></div>
+    <div class="tbox"><small>Delay time L</small><b id="t_tl">0.0 s</b></div>
+    <div class="tbox"><small>Delay time R</small><b id="t_tr">0.0 s</b></div>
+    <div class="tbox"><small>Safety timer</small><b id="t_ts">0.0 s</b></div>
+  </div>
+</section>
+
+<!-- ================= LOG ================= -->
+<section id="log">
+  <div class="sec-h"><h2>Event log</h2><span>Starts, stops, finished tiles, alarms and connection changes</span><div class="line"></div></div>
+  <div class="card"><div class="ch"><h3>Events</h3>
+    <div class="tools2"><select class="sel" id="logF"><option value="all">All</option><option value="warn">Warnings</option><option value="err">Alarms</option><option value="ok">Production</option></select>
+    <button class="vbtn" id="logCsv">Export CSV</button><button class="vbtn" id="logClr">Clear</button></div></div>
+    <div class="logwrap"><table class="log"><thead><tr><th>Time</th><th>Type</th><th>Message</th></tr></thead><tbody id="logBody"></tbody></table></div></div>
+</section>
+
+<!-- ================= DOCS ================= -->
+<section id="docs">
+  <div class="sec-h"><h2>Documents</h2><span>Machine manual, drawings and specification</span><div class="line"></div></div>
+  <div class="docs-row">
+    <div class="card"><div class="ch"><h3>Machine manual (PDF)</h3>
+      <div class="tools2"><label class="vbtn file">Load PDF…<input type="file" id="pdfIn" accept="application/pdf"></label><a class="vbtn" id="pdfOpen" href="assets/manual.pdf" target="_blank">Open in tab</a></div></div>
+      <div class="pdfbox">
+        <div class="empty" id="pdfEmpty"><div><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h5"/></svg><b>Place your manual here</b>Save the PDF as <code>assets/manual.pdf</code> next to this page,<br>or press <b>Load PDF…</b> to view one now.</div></div>
+        <object id="pdfObj" data="assets/manual.pdf" type="application/pdf" style="position:relative"></object>
+      </div></div>
+    <div style="display:grid;gap:16px">
+      <div class="card"><div class="ch"><h3>Drawings &amp; programs</h3></div><div class="cb"><div class="doclist" id="docList"></div></div></div>
+      <div class="card"><div class="ch"><h3>Machine specification</h3></div><div class="cb"><table class="spec" id="specTbl"></table></div></div>
+      <div class="card"><div class="ch"><h3>Project</h3></div><div class="cb"><table class="spec" id="projTbl"></table></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GALLERY ================= -->
+<section id="gallery">
+  <div class="sec-h"><h2>Gallery</h2><span>Photos, HMI screens and the virtual factory</span><div class="line"></div></div>
+  <div class="card" style="margin-bottom:16px"><div class="ch"><h3>Virtual factory simulation</h3><span class="sub">video</span></div>
+    <video controls preload="metadata" poster="assets/virtual-factory-poster.jpg" src="assets/factory-virtual.mp4"></video></div>
+  <div class="chips" style="margin-bottom:12px" id="galF"></div>
+  <div class="gal" id="gal"></div>
+</section>
+</main>
+<footer><span>© Graduation project · Tile printing line automation &amp; IIoT digital twin</span><span id="ftMode">Mode: simulation</span></footer>
+</div>
+
+<div id="lb"><button class="ibtn x" id="lbX">✕</button><button class="ibtn nv" id="lbP" style="left:18px">‹</button><img id="lbI" alt=""><p id="lbT"></p><button class="ibtn nv" id="lbN" style="right:18px">›</button></div>
+
+<dialog id="dlg"><div class="ch"><h3>Settings</h3></div>
+  <div class="cb">
+    <div class="fld"><span>Node-RED WebSocket</span><input type="text" id="sWs" placeholder="ws://192.168.1.10:1880/ws/twin"></div>
+    <div class="fld"><span>Force simulation (ignore PLC)</span><label class="sw"><input type="checkbox" id="sSim"><i></i></label></div>
+    <div class="fld"><span>Target cycle time (s)</span><input type="number" id="sTgt" min="1" max="600" value="15"></div>
+    <div class="note">Saving reloads the page. The address can also be given in the URL: <b>?ws=ws://IP:1880/ws/twin</b></div>
+    <div class="btnrow" style="grid-template-columns:1fr 1fr;margin-top:16px"><button class="btn" id="sCancel">Cancel</button><button class="btn go" id="sSave">Save</button></div>
+  </div>
+</dialog>
+
+<script>
+  window.addEventListener('error', function(e){
+    var d = document.getElementById('err'); d.style.display = 'block';
+    d.textContent += 'ERROR: ' + e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '') + (e.error && e.error.stack ? '\n' + e.error.stack : '') + '\n';
+  });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  if (!window.THREE) document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+</script>
+<script>
+  if (!window.THREE) { var d = document.getElementById('err'); d.style.display = 'block';
+    d.textContent = 'Could not download three.js (no internet or blocked). Download https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js, save it next to this file as three.min.js and change the script src to "three.min.js".'; }
+</script>
+
+<script>
+/* ===================== CONFIG ===================== */
+const CONFIG = {
+  // Live data comes from Node-RED (flow "Digital twin bridge"). Override with  ?ws=ws://IP:1880/ws/twin  in the page URL.
+  WS_URL: (function(){ try { var q = new URLSearchParams(location.search);
+    if (q.get('sim') === '1' || localStorage.getItem('dash_sim') === '1') return null;
+    return q.get('ws') || localStorage.getItem('dash_ws') || ('ws://' + (location.hostname || 'localhost') + ':1880/ws/twin');
+  } catch(e){ return 'ws://localhost:1880/ws/twin'; } })(),
+  REST_URL: null,        // optional alternative: e.g. "/api/plc/tags"
+  REST_POLL_MS: 500,
+  STALE_MS: 4000,        // no message for this long -> fall back to simulation
+  // Simulation timings (the real values are the HMI timers: entry timer, delay time L/R, safety timer)
+  ENTRY_DELAY: 1.0, DIR_DELAY: 0.5, SAFETY_DELAY: 1.0,
+  // The PDF's SFC (S0..S9) has no screen step: the screen has its own push-button / HMI "SCREEN" button.
+  // true  = the simulation lowers the screen automatically before printing and raises it afterwards.
+  SCREEN_IN_CYCLE: true
+};
+
+/* ===================== TAG MAP (PDF I/O table + Node-RED register decoding) ===================== */
+// [key, label, PLC address]  – keys are exactly the names used in the Node-RED "Decode machine state" node
+const INPUTS = [
+  ['stop','Stop','0.00'], ['auto','Auto mode','0.01'], ['right_proximity','Right proximity','0.02'], ['left_proximity','Left proximity','0.03'],
+  ['entrance','Entrance photocell','0.04'], ['down_screen_sensor','Screen sensor (down)','0.05'], ['start','Start','0.06'], ['screen_up','Screen up 1','0.07'],
+  ['manual','Manual mode','0.08'], ['screen_up_2','Screen up 2','0.09'], ['sys_on','System on','0.10'], ['safety_sensor','Safety sensor','0.11'],
+  ['Drive_error','Drive error (VFD)','1.00']
+];
+const OUTPUTS = [
+  ['forward','Motor forward','100.00'], ['reverse','Motor reverse','100.01'], ['stop_tiles','Stop tiles (last dam)','100.02'], ['screen_up_out','Screen up valve','100.03'],
+  ['clamp','Side clamp valve','100.04'], ['piston','Brush piston','100.05'], ['start_light','Start light','100.06'], ['tiles_wait','Tiles wait (first dam)','100.07*'],
+  ['stop_light','Stop light','R13.0'], ['screen_out_down','Screen down valve','R13.1*']
+];
+const ALARMS = [
+  ['over_run_alarm','Over-run alarm','R16.3'], ['system_connection_alarm','System connection alarm','R16.4'], ['Drive_alarm','Drive alarm','R16.5']
+];
+const BAD = ['safety_sensor','Drive_error','over_run_alarm','system_connection_alarm','Drive_alarm'];
+
+const tags = {};
+[...INPUTS,...OUTPUTS,...ALARMS].forEach(([k]) => tags[k] = false);
+Object.assign(tags, { left_proximity:true, screen_up:true, screen_up_2:true, screen_up_out:true, stop_light:true,
+  done_loops:0, desired_loops:2, count:0, steps:[], plc_alive:true, t_entry:0, t_dl:0, t_dr:0, t_safe:0 });
+
+// Accepts either the nested object published by Node-RED ({inputs,outputs,alarms,counters,timers_sec,active_steps,plc_alive}) or a flat {tag:value} object
+function setTags(t){
+  if (t && t.inputs){
+    Object.assign(tags, t.inputs, t.outputs || {}, t.alarms || {});
+    const c = t.counters || {};
+    tags.done_loops = c.done_loops || 0; tags.desired_loops = c.desired_loops || 0; tags.count = c.processed_tiles || 0;
+    const m = t.timers_sec || {};
+    tags.t_entry = m.entry_timer || 0; tags.t_dl = m.delay_time_left || 0; tags.t_dr = m.Delay_Timer_R || 0; tags.t_safe = m.Safty_Timer || 0;
+    tags.steps = t.active_steps || [];
+    if (t.plc_alive !== undefined) tags.plc_alive = t.plc_alive;
+  } else Object.assign(tags, t);
+}
+window.setTags = setTags;
+
+let live = false, lastMsg = 0, wsOpen = false, wsRef = null;
+function setConn(){
+  const c = document.getElementById('conn');
+  if (live){
+    const lost = tags.plc_alive === false;
+    c.textContent = lost ? 'PLC LINK LOST – last known state' : 'LIVE – PLC CONNECTED';
+    c.style.color = lost ? '#f1c40f' : '#2ecc71';
+  } else {
+    c.textContent = wsOpen ? 'BRIDGE CONNECTED – WAITING FOR DATA' : ((CONFIG.WS_URL||CONFIG.REST_URL) ? 'NO BRIDGE – SIMULATION' : 'SIMULATION');
+    c.style.color = '';
+  }
+}
+function onData(d){
+  if (!live) clearTiles();
+  setTags(d); lastMsg = performance.now(); live = true; setConn();
+}
+function connectLive(){
+  if (CONFIG.WS_URL){
+    let ws; try { ws = new WebSocket(CONFIG.WS_URL); } catch(_){ setTimeout(connectLive, 3000); return; }
+    ws.onopen = () => { wsOpen = true; wsRef = ws; setConn(); try { ws.send(JSON.stringify({cmd:'hello'})); } catch(_){} };
+    ws.onmessage = e => { try { onData(JSON.parse(e.data)); } catch(_){} };
+    ws.onerror = () => {};
+    ws.onclose = () => { wsOpen = false; wsRef = null; setConn(); setTimeout(connectLive, 3000); };
+  } else if (CONFIG.REST_URL){
+    setInterval(async () => { try { const r = await fetch(CONFIG.REST_URL); onData(await r.json()); } catch(_){} }, CONFIG.REST_POLL_MS);
+  }
+}
+function rows(list, id){ document.getElementById(id).innerHTML = list.map(([k,n,a]) =>
+  `<div class="tag"><span>${n}<i>${a}</i></span><span class="dot ${BAD.includes(k)?'bad':''}" id="t_${k}"></span></div>`).join(''); }
+rows(INPUTS,'inputs'); rows(OUTPUTS,'outputs'); rows(ALARMS,'alarms');
+
+/* ===================== SCENE ===================== */
+const view = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.shadowMap.enabled = true;
+view.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0d0f12); scene.fog = new THREE.Fog(0x0d0f12, 16, 40);
+const camera = new THREE.PerspectiveCamera(45,1,0.1,100);
+scene.add(new THREE.HemisphereLight(0xbfd8ff,0x203040,0.85));
+const sun = new THREE.DirectionalLight(0xffffff,0.9); sun.position.set(6,10,7); sun.castShadow = true; sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9}); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:0x14171c,roughness:.95}));
+floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor); scene.add(new THREE.GridHelper(40,40,0x4a4020,0x23252a));
+
+const M = (c,o={}) => new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.5,metalness:.3},o));
+const named = [];
+function add(p,geo,mat,x=0,y=0,z=0,name){
+  const m = new THREE.Mesh(geo,mat); m.position.set(x,y,z); m.castShadow = m.receiveShadow = true;
+  m.userData.label = name || 'unnamed';
+  if (name){ m.userData.name = name; named.push(m); } p.add(m); return m;
+}
+const B = (w,h,d) => new THREE.BoxGeometry(w,h,d);
+const CYL = (r,l,s=20) => new THREE.CylinderGeometry(r,r,l,s);
+function canvasTex(w,h,draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g,w,h); return new THREE.CanvasTexture(c); }
+function tube(pts,color,r=0.012){
+  const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))),40,r,6,false), M(color,{roughness:.4,metalness:.1}));
+  m.castShadow = true; m.userData.label = 'Pneumatic tube'; scene.add(m); return m;
+}
+const steel = M(0x9aa7b4,{metalness:.7,roughness:.35}), green = M(0x2f8f3a,{roughness:.6}), chromeMat = M(0xdfe6ec,{metalness:.9,roughness:.2}),
+      cyan = M(0x1fb5c9,{metalness:.6}), yellowMat = M(0xf1c40f,{roughness:.6}), blackMat = M(0x1c2127,{roughness:.7,metalness:.4}), orange = M(0xe67e22);
+const BLUE = 0x2f7fd6;
+
+/* ===================== MACHINE (DK3 Extrem) =====================
+   World axes: X = across the machine (squeegee carriage travel), Z = conveyor direction (tiles enter from -Z, leave towards +Z / the operator), Y = up.
+   Vertical stack at the printing station (all clearances are intentional – nothing may overlap):
+     belt top 1.05 → tile top 1.10 → screen plate (down) bottom 1.115 → squeegee tip touches the screen mesh at 1.15 */
+const Y0 = 0.95, LEN = 9, BW = 0.94, BELT_TOP = Y0 + 0.1, TILE = 0.5, TILE_T = 0.05, TILE_Y = BELT_TOP + TILE_T/2;
+const XMAX = 0.55;                       // squeegee carriage travel (±)
+const SU = 1.65, SD = 1.13;              // screen plate centre height: up / down (down = 1.5 cm above the tile)
+const PLATE_H = 0.03, MESH_DY = 0.02;    // screen plate thickness; mesh sits 2 cm above plate centre
+const BLADE_UP = 1.85, BLADE_DN = SD + 0.07;   // squeegee centre height; it can never go lower than the screen mesh
+const BZ = 0.29, FD_Z = -3.2;            // last dam (stop tiles) and first dam (tiles wait) positions along Z
+const BD_DOWN = BELT_TOP - 0.30, BD_UP = BELT_TOP + 0.08, DAM_H = 0.3;
+const DAM_LIMIT = FD_Z - 0.03 - TILE/2 - 0.01;  // tile centre when held by the first dam
+
+// Black steel stand
+for (const x of [-1.3,1.3]) for (const z of [-0.95,0.95]) add(scene,B(0.1,Y0-0.05,0.1),blackMat,x,(Y0-0.05)/2,z,'Machine stand');
+for (const z of [-0.95,0.95]) add(scene,B(2.7,0.1,0.1),blackMat,0,Y0-0.1,z,'Machine stand');
+for (const x of [-1.3,1.3]) add(scene,B(0.1,0.1,1.9),blackMat,x,Y0-0.1,0,'Machine stand');
+
+// Conveyor belt (tiles travel along +Z)
+const beltTex = canvasTex(64,64,(g,w,h) => { g.fillStyle = '#23272d'; g.fillRect(0,0,w,h); g.fillStyle = '#39414a'; g.fillRect(0,0,w,5); g.fillStyle = '#1a1d22'; g.fillRect(0,h-3,w,3); });
+beltTex.wrapS = beltTex.wrapT = THREE.RepeatWrapping; beltTex.repeat.set(1, LEN/0.5);
+add(scene,B(BW,0.08,LEN),M(0x2a2f36,{roughness:.9}),0,BELT_TOP-0.045,0,'Conveyor belt body');
+const belt = add(scene,new THREE.PlaneGeometry(BW,LEN),new THREE.MeshStandardMaterial({map:beltTex,roughness:.95}),0,BELT_TOP+0.001,0,'Conveyor belt');
+belt.rotation.x = -Math.PI/2; belt.castShadow = false;
+for (const z of [-LEN/2,LEN/2]) add(scene,CYL(0.07,BW,16),steel,0,BELT_TOP-0.06,z,'Belt roller').rotation.z = Math.PI/2;
+for (let z=-4;z<=4;z+=2) for (const x of [-0.5,0.5]) add(scene,B(0.08,Y0,0.08),steel,x,Y0/2,z,'Conveyor leg');
+const railMat = M(0x555f6a);
+add(scene,B(0.06,0.12,LEN),railMat,0.5,BELT_TOP-0.01,0,'Side guide rail');
+for (const zc of [-2.525,2.525]) add(scene,B(0.06,0.12,3.95),railMat,-0.5,BELT_TOP-0.01,zc,'Conveyor side rail');
+
+// Green side arms (curved plates) + front beam with logo
+const armShape = new THREE.Shape();
+armShape.moveTo(1.05,1.0); armShape.lineTo(1.05,1.5);
+armShape.quadraticCurveTo(-0.1,1.55,-0.55,2.5);
+armShape.lineTo(-0.95,2.5);
+armShape.quadraticCurveTo(-0.75,1.2,0.3,1.0);
+armShape.lineTo(1.05,1.0);
+const armGeo = new THREE.ExtrudeGeometry(armShape,{depth:0.12,bevelEnabled:false});
+for (const x of [-1.5,1.5]){ const a = add(scene,armGeo,green,x+0.06,0,0,'Machine frame (side arm)'); a.rotation.y = -Math.PI/2; }
+add(scene,B(3.12,0.4,0.12),green,0,1.25,1.05,'Machine frame (front beam)');
+const logoTex = canvasTex(256,76,(g,w,h) => {
+  g.fillStyle = '#2f8f3a'; g.fillRect(0,0,w,h);
+  g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(8,8); g.lineTo(w-8,8); g.lineTo(w-26,h-8); g.lineTo(8,h-8); g.closePath(); g.fill();
+  g.fillStyle = '#2f8f3a'; g.font = 'italic 900 34px Arial'; g.fillText('DK3', 22, 38);
+  g.font = 'italic 800 24px Arial'; g.fillText('EXTREM', 22, 62);
+});
+add(scene,new THREE.PlaneGeometry(0.9,0.27),new THREE.MeshStandardMaterial({map:logoTex}),0.5,1.27,1.113,'DK3 Extrem logo');
+add(scene,B(0.25,0.15,0.01),M(0xf2f2f2),0.05,1.2,1.113,'Data plate (CE)');
+add(scene,CYL(0.14,0.05,24),blackMat,-0.5,1.25,1.12,'Handwheel').rotation.x = Math.PI/2;
+add(scene,CYL(0.04,0.06,16),M(0xffffff),-0.5,1.25,1.15,'Handwheel centre').rotation.x = Math.PI/2;
+// Pilot lights on the front beam
+const pilots = {};
+[['red',0xff2d2d,1.0,'Stop / alarm light'],['yellow',0xffc800,1.15,'Clamp / piston light'],['green',0x1fdc6a,1.3,'Start light']].forEach(([n,c,x,nm]) => {
+  const l = add(scene,CYL(0.04,0.06,16),new THREE.MeshStandardMaterial({color:c,emissive:0,roughness:.3}),x,1.38,1.12,nm); l.rotation.x = Math.PI/2; l.userData.c = c; pilots[n] = l; });
+
+// Chrome guide rods (carriage) + adjustment rods with knobs
+const rod = (z,y,r,len=3.3) => { const m = add(scene,CYL(r,len,16),chromeMat,0,y,z,'Chrome rod'); m.rotation.z = Math.PI/2; return m; };
+rod(-0.6,2.4,0.04); rod(-0.8,2.4,0.04);
+for (const [z,y] of [[0.55,1.85],[0.8,1.72]]){
+  rod(z,y,0.025,3.4);
+  for (const x of [-1.5,1.5]) add(scene,B(0.07,y-1.5,0.07),steel,x,(y+1.5)/2,z,'Rod support');
+  for (const x of [-0.95,0.75]) add(scene,CYL(0.055,0.06,6),blackMat,x,y,z,'Adjustment knob').rotation.z = Math.PI/2;
+}
+// Yellow guard (left) and bracket (right)
+add(scene,B(0.3,0.5,0.6),yellowMat,-1.725,2.0,-0.3,'Guard (yellow)');
+add(scene,B(0.08,0.5,0.35),yellowMat,1.62,1.75,0.3,'Bracket (yellow)');
+
+// Gear-motor + toothed belt (drives the squeegee carriage; fed by the Yaskawa V1000)
+const motorMat = M(0xb8bfc7,{metalness:.5});
+const motor = add(scene,CYL(0.2,0.55,24),motorMat,-1.3,2.95,-0.7,'Brush drive motor (3-phase AC, via VFD)');
+for (let i=0;i<5;i++) add(scene,CYL(0.235,0.02,24),motorMat,-1.3,2.75+i*0.1,-0.7,'Motor fin');
+add(scene,B(0.28,0.2,0.3),M(0x6b7783),-1.3,2.55,-0.7,'Gearbox');
+add(scene,CYL(0.03,0.45,10),steel,-1.3,2.3,-0.7,'Drive shaft');
+const pulleys = [-1.3,1.3].map(x => add(scene,CYL(0.1,0.08,8),steel,x,2.15,-0.7,'Belt pulley'));
+const toothTex = canvasTex(32,16,(g,w,h) => { g.fillStyle = '#b08a5a'; g.fillRect(0,0,w,h); g.fillStyle = '#6e4f2a'; for (let i=0;i<w;i+=8) g.fillRect(i,0,4,h); });
+toothTex.wrapS = toothTex.wrapT = THREE.RepeatWrapping; toothTex.repeat.set(26,1);
+add(scene,B(2.6,0.02,0.06),new THREE.MeshStandardMaterial({map:toothTex}),0,2.15,-0.7,'Toothed drive belt');
+
+// Squeegee carriage (moves with the belt)
+const head = new THREE.Group(); scene.add(head);
+add(head,B(0.34,0.16,0.35),green,0,2.4,-0.7,'Brush carriage');
+add(head,B(0.1,0.2,0.1),steel,0,2.23,-0.7,'Belt clamp');
+add(head,B(0.3,0.12,0.65),green,0,2.2,-0.275,'Brush carriage arm');
+for (const x of [-0.08,0.08]) add(head,CYL(0.05,0.14,14),blackMat,x,2.34,-0.38,'Pressure regulator knob');
+const pistonRods = [];
+for (const px of [-0.09,0.09]){ add(head,CYL(0.05,0.2,14),cyan,px,2.04,0,'Brush piston cylinder'); pistonRods.push(add(head,CYL(0.025,1,10),chromeMat,px,1.9,0,'Brush piston rod')); }
+const holder = add(head,B(0.26,0.04,0.2),steel,0,BLADE_UP+0.07,0,'Blade holder');
+const blade = add(head,B(0.04,0.1,0.5),M(0xc0392b),0,BLADE_UP,0,'Brush (squeegee)');
+
+// Printing screen: moves up/down on 4 lift cylinders
+const screen = new THREE.Group(); scene.add(screen);
+const speckle = canvasTex(128,128,(g,w,h) => { g.fillStyle = '#c9c9c4'; g.fillRect(0,0,w,h); for (let i=0;i<700;i++){ const v = 110+Math.random()*110|0; g.fillStyle = `rgb(${v},${v},${v-6})`; g.fillRect(Math.random()*w,Math.random()*h,2,2); } });
+add(screen,B(1.2,PLATE_H,0.5),new THREE.MeshStandardMaterial({map:speckle,roughness:.8,metalness:.1,transparent:true,opacity:.22,depthWrite:false}),0,0,0,'Screen plate');
+for (const [sx,sz] of [[-0.4,0.1],[-0.15,-0.05],[0.1,0.12],[0.35,-0.08],[0.45,0.15],[-0.2,0.15]]) add(screen,CYL(0.02,0.006,10),chromeMat,sx,PLATE_H/2+0.003,sz,'Screen screw');
+const cvs = canvasTex(64,64,(g,w,h) => { g.fillStyle = '#7fb2ff'; g.fillRect(0,0,w,h); g.strokeStyle = '#1d4f9a'; g.lineWidth = 1; for (let i=0;i<=64;i+=4){ g.beginPath(); g.moveTo(i,0); g.lineTo(i,64); g.moveTo(0,i); g.lineTo(64,i); g.stroke(); } });
+cvs.wrapS = cvs.wrapT = THREE.RepeatWrapping; cvs.repeat.set(6,6);
+const mesh = add(screen,new THREE.PlaneGeometry(0.62,0.46),new THREE.MeshStandardMaterial({map:cvs,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}),0,MESH_DY,0,'Printing screen (mesh)');
+mesh.rotation.x = -Math.PI/2; mesh.castShadow = false;
+for (const sx of [-0.78,0.78]) for (const sz of [-0.2,0.2]) add(screen,B(0.36,0.03,0.07),steel,sx,0,sz,'Screen bracket');
+// Static plate stack behind the screen (as in the photos)
+add(scene,B(1.1,0.04,0.35),M(0x4a4540),0,1.8,-0.35,'Screen frame (stack)');
+add(scene,B(1.1,0.04,0.3),M(0x5a5248),0,1.86,-0.35,'Screen frame (stack)');
+const LIFT_BOT = 1.95, lifts = [];
+for (const x of [-0.85,0.85]) for (const z of [-0.2,0.2]){
+  add(scene,CYL(0.07,0.4,16),cyan,x,2.15,z,'Screen lift cylinder');
+  lifts.push(add(scene,CYL(0.025,1,10),chromeMat,x,LIFT_BOT-0.2,z,'Piston rod'));
+}
+for (const s of [-1,1]) for (const z of [-0.2,0.2]) tube([[s*0.85,2.35,z],[s*1.0,2.55,z],[s*1.3,2.3,z],[s*1.43,1.7,z]],BLUE);
+
+// Dams: last dam (stop tiles, at the printing station) and first dam (tiles wait, upstream) – rise through the belt
+const blocker = add(scene,B(0.7,DAM_H,0.06),orange,0,BD_DOWN,BZ,'Last dam – stop tiles');
+add(scene,CYL(0.05,0.4,14),cyan,0,BELT_TOP-0.5,BZ,'Stop-tiles cylinder');
+// Side clamp valve (pushes the tile against the guide rail)
+const clampPlate = add(scene,B(0.06,0.07,0.4),orange,-0.6,TILE_Y,0,'Side clamping valve');
+const clampRod = add(scene,CYL(0.025,1,10),chromeMat,-0.7,TILE_Y,0,'Clamp piston rod'); clampRod.rotation.z = Math.PI/2;
+const cb = add(scene,CYL(0.07,0.5,16),cyan,-1.1,TILE_Y,0,'Clamp cylinder'); cb.rotation.z = Math.PI/2;
+tube([[-1.15,TILE_Y+0.08,0],[-1.2,TILE_Y+0.4,0.05],[-1.35,TILE_Y+0.5,0.3],[-1.43,TILE_Y+0.1,0.6]],BLUE);
+
+// Entrance photocell (through-beam just above the tile surface, between the rails)
+const BEAM_Y = BELT_TOP + 0.075;
+for (const x of [-0.65,0.65]) add(scene,B(0.06,0.5,0.06),steel,x,BELT_TOP+0.25,-1.5,'Entrance photocell');
+const eye = add(scene,B(0.1,0.1,0.1),M(0xffc107),-0.65,BEAM_Y,-1.5,'Entrance photocell (I0.04)');
+const pbeam = add(scene,CYL(0.01,1.3,8),new THREE.MeshBasicMaterial({color:0xff3b3b,transparent:true,opacity:.6}),0,BEAM_Y,-1.5,'Photocell beam'); pbeam.rotation.z = Math.PI/2; pbeam.castShadow = false;
+// Proximity sensors (carriage end positions, mounted under the rear rod) and screen position sensors (on the lift cylinders)
+const proxMat = () => M(0xffc107);
+const proxR = add(scene,CYL(0.05,0.12,12),proxMat(),0.82,2.28,-0.6,'Right proximity (I0.02)'); proxR.rotation.z = Math.PI/2;
+const proxL = add(scene,CYL(0.05,0.12,12),proxMat(),-0.82,2.28,-0.6,'Left proximity (I0.03)'); proxL.rotation.z = Math.PI/2;
+for (const x of [-0.82,0.82]) add(scene,B(0.08,0.06,0.1),steel,x,2.33,-0.6,'Sensor mount');
+const proxD  = add(scene,B(0.04,0.08,0.04),proxMat(), 0.945,2.0,0.2,'Screen-down sensor (I0.05)');
+const proxU1 = add(scene,B(0.04,0.08,0.04),proxMat(), 0.945,2.3,0.2,'Screen-up sensor 1 (I0.07)');
+const proxU2 = add(scene,B(0.04,0.08,0.04),proxMat(),-0.945,2.3,0.2,'Screen-up sensor 2 (I0.09)');
+
+// Control cabinet under the front beam (door open, like the photo)
+const cab = new THREE.Group(); cab.position.set(-0.3,0,1.3); scene.add(cab);
+const cabM = M(0xcfd6dd,{metalness:.2,roughness:.7});
+add(cab,B(1.0,0.85,0.02),cabM,0,0.425,-0.215,'Control cabinet');
+add(cab,B(0.02,0.85,0.45),cabM,-0.5,0.425,0,'Control cabinet');
+add(cab,B(0.02,0.85,0.45),cabM,0.5,0.425,0,'Control cabinet');
+add(cab,B(1.0,0.02,0.45),cabM,0,0.85,0,'Control cabinet');
+add(cab,B(1.0,0.02,0.45),cabM,0,0.0,0,'Control cabinet');
+add(cab,B(0.96,0.8,0.01),M(0xe9e6dc),0,0.425,-0.2,'Mounting plate');
+add(cab,B(0.2,0.28,0.1),M(0xdde1e5),-0.3,0.62,-0.145,'Yaskawa V1000 VFD');
+const vfdCv = document.createElement('canvas'); vfdCv.width = 64; vfdCv.height = 24; const vg = vfdCv.getContext('2d');
+const vfdTex = new THREE.CanvasTexture(vfdCv); let vfdLast = '';
+function drawVFD(txt, err){
+  if (txt + err === vfdLast) return; vfdLast = txt + err;
+  vg.fillStyle = '#07210f'; vg.fillRect(0,0,64,24); vg.fillStyle = err ? '#ff5555' : '#6dff8a'; vg.font = 'bold 18px monospace'; vg.fillText(txt,4,19); vfdTex.needsUpdate = true;
+}
+drawVFD('STOP',false);
+add(cab,new THREE.PlaneGeometry(0.1,0.0375),new THREE.MeshBasicMaterial({map:vfdTex}),-0.3,0.72,-0.094,'VFD display');
+add(cab,B(0.34,0.12,0.08),M(0xf2f2f2),0.0,0.62,-0.155,'OMRON CP1E PLC');
+const plcLeds = [];
+['stop','auto','right_proximity','left_proximity','entrance','down_screen_sensor','start','screen_up','manual','screen_up_2','sys_on','safety_sensor'].forEach((k,i) =>
+  plcLeds.push([k, add(cab,B(0.012,0.012,0.006),M(0x23352a,{emissive:0}),(i-5.5)*0.022,0.65,-0.113,'PLC LED'), 0x33ff66]));
+['forward','reverse','stop_tiles','screen_up_out','clamp','piston','start_light','tiles_wait'].forEach((k,i) =>
+  plcLeds.push([k, add(cab,B(0.012,0.012,0.006),M(0x3a2f1a,{emissive:0}),(i-3.5)*0.022,0.6,-0.113,'PLC LED'), 0xffa000]));
+for (const y of [0.38,0.3,0.22]) add(cab,B(0.9,0.04,0.04),M(0x8a949e),0,y,-0.17,'Terminal strip');
+for (let i=0;i<46;i++){ const h = 0.08+Math.random()*0.12, c = [0xd0d4da,0x3b82f6,0xe9e9e9,0x6b7280,0xc0392b][i%5]; add(cab,B(0.006,h,0.006),M(c),-0.45+Math.random()*0.9,0.3+Math.random()*0.15,-0.14,'Wire'); }
+add(cab,B(0.08,0.12,0.07),M(0xc0392b),0.3,0.62,-0.15,'Safety relay');
+for (const x of [0.2,0.3]) add(cab,B(0.07,0.09,0.06),M(0x2b2f36),x,0.46,-0.15,'Contactor');
+const door = new THREE.Group(); door.position.set(-0.5,0,0.225); door.rotation.y = -1.75; cab.add(door);
+add(door,B(1.0,0.85,0.02),cabM,0.5,0.425,0.01,'Cabinet door');
+add(door,B(0.28,0.2,0.012),M(0x0b1a2b,{emissive:0x0a3a6a}),0.72,0.62,0.026,'HMI (OMRON NS5)');
+add(door,B(0.14,0.14,0.02),yellowMat,0.8,0.2,0.03,'Main disconnect');
+add(door,CYL(0.04,0.04,16),M(0xc0392b),0.8,0.2,0.05,'Main disconnect knob').rotation.x = Math.PI/2;
+
+/* ===================== TILES ===================== */
+const tiles = [];
+const tileGeo = B(TILE,TILE_T,TILE);
+function spawnTile(z){
+  const m = new THREE.Mesh(tileGeo, new THREE.MeshStandardMaterial({color:0xc9a67a,roughness:.7}));
+  m.castShadow = true; m.position.set(0,TILE_Y,z); m.userData = { name:'Tile', label:'Tile', ink:0 };
+  scene.add(m); tiles.push(m); named.push(m);
+}
+function clearTiles(){ tiles.slice().forEach(t => { scene.remove(t); const i = named.indexOf(t); if (i >= 0) named.splice(i,1); }); tiles.length = 0; }
+const inkCol = new THREE.Color(0x2a78c9), baseCol = new THREE.Color(0xc9a67a);
+
+/* ===================== SIMULATION (follows the SFC in the PDF: S0 … S9) ===================== */
+let st = 'wait', stT = 0, rounds = 0, spawnT = 3, run = false;
+const STATE_TXT = { wait:'S0 · Waiting for tile', s1:'S1 · Entry delay timer', s2:'S2 · Last dam + side clamp ON', screen:'Screen down', brush:'Brush piston down',
+  fwd:'S3 · Printing → forward (right)', d1:'S4 · Direction delay', rev:'S5 · Printing ← reverse (left)', d2:'S7 · Direction delay',
+  up1:'Brush piston up', up2:'Screen up', safety:'S8 · Safety delay', release:'S9 · Releasing tile' };
+function go(s){ st = s; stT = 0; }
+function setScreen(down){ tags.screen_out_down = down; tags.screen_up_out = !down; }
+function resetSim(){
+  st = 'wait'; stT = 0; rounds = 0; run = false; spawnT = 3;
+  OUTPUTS.forEach(([k]) => tags[k] = false);
+  Object.assign(tags, { screen_up_out:true, screen_up:true, screen_up_2:true, down_screen_sensor:false, left_proximity:true, right_proximity:false, stop_light:true,
+    done_loops:0, steps:[], t_entry:0, t_dl:0, t_dr:0, t_safe:0 });
+  cx = -XMAX; clearTiles();
+}
+const STEP_OF = { wait:'zero', s1:'first', s2:'second', screen:'second', brush:'second', fwd:'third', d1:'fourth', rev:'fifth', up1:'sixth', up2:'sixth', d2:'seventh', safety:'eighth', release:'nineth' };
+function simulate(dt){
+  stT += dt;
+  tags.sys_on = run && !tags.safety_sensor; tags.start_light = tags.sys_on; tags.stop_light = !tags.sys_on; tags.auto = run; tags.manual = false;
+  const N = Math.max(1, +document.getElementById('nr').value || 1);
+  tags.desired_loops = N;
+  tags.steps = run ? [STEP_OF[st]] : [];
+  if (!tags.sys_on) return; // paused: outputs are kept so the sequence resumes
+  spawnT += dt;
+  if (spawnT > 1.2 && (st === 'wait' || st === 'release') && !tiles.some(t => t.position.z < 0.7)){ spawnTile(-4.2); spawnT = 0; }
+  const C = CONFIG;
+  switch (st){
+    case 'wait': if (tags.entrance){ tags.tiles_wait = true; go('s1'); } break;
+    case 's1': tags.t_entry = Math.max(0, C.ENTRY_DELAY - stT);
+               if (stT >= C.ENTRY_DELAY){ tags.stop_tiles = true; tags.clamp = true; go('s2'); } break;
+    case 's2': if (tiles.some(t => Math.abs(t.position.z) < 0.01) && blockK > 0.9 && clampK > 0.97) go(C.SCREEN_IN_CYCLE ? 'screen' : 'brush'); break;
+    case 'screen': setScreen(true); if (screenY <= SD + 0.01) go('brush'); break;
+    case 'brush': tags.piston = true; if (brushK > 0.97){ tags.forward = true; rounds = 0; tags.done_loops = 0; go('fwd'); } break;
+    case 'fwd': if (tags.right_proximity){ tags.forward = false; go('d1'); } break;
+    case 'd1': tags.t_dr = Math.max(0, C.DIR_DELAY - stT); if (stT >= C.DIR_DELAY){ tags.reverse = true; go('rev'); } break;
+    case 'rev': if (tags.left_proximity){ tags.reverse = false; rounds++; tags.done_loops = rounds; go(rounds >= tags.desired_loops ? 'up1' : 'd2'); } break;
+    case 'd2': tags.t_dl = Math.max(0, C.DIR_DELAY - stT); if (stT >= C.DIR_DELAY){ tags.forward = true; go('fwd'); } break;
+    case 'up1': tags.piston = false; if (brushK < 0.05) go(C.SCREEN_IN_CYCLE ? 'up2' : 'safety'); break;
+    case 'up2': setScreen(false); if (screenY >= SU - 0.01) go('safety'); break;
+    case 'safety': tags.t_safe = Math.max(0, C.SAFETY_DELAY - stT);
+                   if (stT >= C.SAFETY_DELAY){ tags.clamp = false; tags.stop_tiles = false; tags.tiles_wait = false; tags.count++; go('release'); } break;
+    case 'release': if (stT > 1.8) go('wait'); break;
+  }
+}
+
+/* ===================== APPLY TAGS TO 3D (works for simulated AND live data) =====================
+   Visual interlocks keep parts from cutting through each other even if the data says otherwise:
+   – the squeegee can never go below the screen mesh (it is pushed up with the screen)
+   – a dam only rises when no tile is passing over it, and a tile only moves on once the dam is below the belt
+   – the screen stops 1.5 cm above the tile */
+let cx = -XMAX, clampK = 0, blockK = 0, damK = 0, brushK = 0, screenY = SU, prevEnt = false;
+const lerp = (a,b,k) => a + (b-a)*k;
+function applyTags(dt){
+  // Carriage follows the motor outputs; in live mode it is re-synchronised by the end proximity sensors
+  const v = (live || tags.sys_on) ? (tags.forward ? 1 : 0) - (tags.reverse ? 1 : 0) : 0;
+  cx = Math.min(XMAX, Math.max(-XMAX, cx + v*XMAX*dt));
+  if (live){ if (tags.right_proximity) cx = XMAX; if (tags.left_proximity) cx = -XMAX; }
+  head.position.x = cx;
+  if (v){ motorMat.emissive.setHex(0x0a2a66); pulleys.forEach(p => p.rotation.y += v*dt*8); toothTex.offset.x -= v*XMAX*dt/0.1; } else motorMat.emissive.setHex(0);
+
+  // Pneumatic valves
+  const k = Math.min(1, dt*6);
+  const blockWant = tags.stop_tiles && !tiles.some(t => t.position.z > 0.01 && t.position.z < BZ + 0.03 + TILE/2 + 0.01);
+  clampK = lerp(clampK, tags.clamp ? 1 : 0, Math.min(1,dt*4));
+  blockK = lerp(blockK, blockWant ? 1 : 0, k);
+  brushK = lerp(brushK, tags.piston ? 1 : 0, k);
+  const target = tags.screen_out_down ? SD : (tags.screen_up_out ? SU : screenY);
+  screenY = lerp(screenY, target, Math.min(1,dt*3.5));
+  screen.position.y = screenY;
+  blocker.position.y = BD_DOWN + (BD_UP - BD_DOWN)*blockK;
+  clampPlate.position.x = -0.6 + 0.52*clampK;
+  const rodLen = (clampPlate.position.x - 0.03) + 0.85;
+  clampRod.scale.y = Math.max(0.05,rodLen); clampRod.position.x = -0.85 + rodLen/2;
+  blade.position.y = Math.max(lerp(BLADE_UP, BLADE_DN, brushK), screenY + 0.07);   // never below the screen mesh
+  holder.position.y = blade.position.y + 0.07;
+  pistonRods.forEach(r => { const len = Math.max(0.02, 1.94 - holder.position.y); r.scale.y = len; r.position.y = 1.94 - len/2; });
+  lifts.forEach(l => { const len = Math.max(0.05, LIFT_BOT - screenY); l.scale.y = len; l.position.y = LIFT_BOT - len/2; });
+
+  // Belt & tiles (tiles move along +Z, the plate / dams / clamp only ever touch them, never overlap)
+  if (tags.sys_on){ beltTex.offset.y += dt*1.3/0.5; }
+  if (live && tags.entrance && !prevEnt && !tiles.some(t => t.position.z > -2.7 && t.position.z < -1.3)) spawnTile(-2.0);
+  prevEnt = tags.entrance;
+  tiles.sort((a,b) => b.position.z - a.position.z);
+  for (let i=tiles.length-1;i>=0;i--){
+    const t = tiles[i], ahead = tiles[i-1]; let nz = t.position.z;
+    if (tags.sys_on) nz += 1.3*dt;
+    if (blockK > 0.1 && t.position.z <= 0.0005) nz = Math.min(nz, 0);                         // last dam holds the tile at the station
+    if (ahead) nz = Math.min(nz, ahead.position.z - (TILE+0.15));
+    t.position.z = Math.max(t.position.z, nz);
+    const near = Math.abs(t.position.z) < TILE/2 + 0.2;
+    const shift = Math.max(0, 0.52*clampK - 0.32);       // tile is pushed only once the clamp plate touches it
+    t.position.x = near ? shift : lerp(t.position.x, 0, Math.min(1,dt*4));
+    if (near && brushK > 0.8 && v && screenY < SD + 0.03) t.userData.ink = Math.min(1, t.userData.ink + dt*0.5);
+    t.material.color.copy(baseCol).lerp(inkCol, t.userData.ink);
+    if (t.position.z > LEN/2 + 0.6){ scene.remove(t); named.splice(named.indexOf(t),1); tiles.splice(i,1); }
+  }
+
+  // Sensors computed in simulation only (live: from PLC)
+  if (!live){
+    tags.entrance = tiles.some(t => Math.abs(t.position.z + 1.5) < 0.3);
+    tags.right_proximity = cx >= XMAX - 0.01; tags.left_proximity = cx <= -XMAX + 0.01;
+    tags.down_screen_sensor = screenY < SD + 0.03;
+    tags.screen_up = tags.screen_up_2 = screenY > SU - 0.03;
+  }
+
+  // Indicators in 3D
+  const lit = (m,on) => m.material.emissive.setHex(on ? 0x885500 : 0);
+  lit(proxR,tags.right_proximity); lit(proxL,tags.left_proximity); lit(proxD,tags.down_screen_sensor); lit(proxU1,tags.screen_up); lit(proxU2,tags.screen_up_2); lit(eye,tags.entrance);
+  pbeam.material.color.setHex(tags.entrance ? 0x00ff66 : 0xff3b3b);
+  const anyAlarm = tags.over_run_alarm || tags.system_connection_alarm || tags.Drive_alarm;
+  const on = { red: tags.stop_light || tags.safety_sensor || tags.Drive_error || anyAlarm, yellow: tags.clamp || tags.piston, green: tags.start_light || tags.sys_on };
+  for (const n in pilots) pilots[n].material.emissive.setHex(on[n] ? pilots[n].userData.c : 0);
+  plcLeds.forEach(([key,m,col]) => m.material.emissive.setHex(tags[key] ? col : 0));
+  drawVFD(tags.Drive_error || tags.Drive_alarm ? 'Err' : tags.forward ? 'FWD' : tags.reverse ? 'REV' : 'STOP', !!(tags.Drive_error || tags.Drive_alarm));
+}
+function updateUI(){}
+const VIEWS = { iso:{th:0.5,ph:1.15,r:9}, front:{th:Math.PI,ph:1.4,r:8}, side:{th:Math.PI/2,ph:1.35,r:9.5}, top:{th:0.5,ph:0.22,r:10} };
+const twinCtl = {
+  start(){ if (!live && !tags.safety_sensor) run = true; },
+  stop(){ if (!live) run = false; },
+  safety(){ if (!live) tags.safety_sensor = !tags.safety_sensor; },
+  reset(){ if (!live){ resetSim(); tags.count = 0; } },
+  send(o){ if (wsRef && wsRef.readyState === 1){ wsRef.send(JSON.stringify(o)); return true; } return false; },
+  view(n){ const g = VIEWS[n]; if (!g) return; const T = Math.PI*2; camGoal = { th:g.th + Math.round((cam.th - g.th)/T)*T, ph:g.ph, r:g.r }; }
+};
+
+/* ===================== ORBIT CAMERA ===================== */
+const cam = { th:0.5, ph:1.15, r:9, target:new THREE.Vector3(0,1.4,0.2) };
+let camGoal = null;
+function placeCamera(){
+  if (camGoal){ const k = 0.12; cam.th += (camGoal.th - cam.th)*k; cam.ph += (camGoal.ph - cam.ph)*k; cam.r += (camGoal.r - cam.r)*k;
+    if (Math.abs(camGoal.th - cam.th) + Math.abs(camGoal.ph - cam.ph) + Math.abs(camGoal.r - cam.r) < 0.004) camGoal = null; }
+  camera.position.set(cam.target.x + cam.r*Math.sin(cam.ph)*Math.sin(cam.th), cam.target.y + cam.r*Math.cos(cam.ph), cam.target.z + cam.r*Math.sin(cam.ph)*Math.cos(cam.th));
+  camera.lookAt(cam.target);
+}
+let drag = null, pinch = 0; const ptrs = new Map(), el = renderer.domElement, mouse = {x:2,y:2,px:0,py:0};
+el.addEventListener('contextmenu', e => e.preventDefault());
+el.addEventListener('pointerdown', e => { camGoal = null; view.classList.add('active'); el.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,e); drag = {x:e.clientX,y:e.clientY,pan:e.button===2}; });
+el.addEventListener('pointerup', e => { ptrs.delete(e.pointerId); drag = null; pinch = 0; });
+el.addEventListener('pointermove', e => {
+  const rc = el.getBoundingClientRect(); mouse.x = ((e.clientX-rc.left)/rc.width)*2-1; mouse.y = -((e.clientY-rc.top)/rc.height)*2+1; mouse.px = e.clientX; mouse.py = e.clientY;
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId,e);
+  if (ptrs.size === 2){ const [a,b] = [...ptrs.values()], d = Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY); if (pinch) cam.r = Math.min(30,Math.max(3,cam.r*pinch/d)); pinch = d; return; }
+  if (!drag) return;
+  const dx = e.clientX-drag.x, dy = e.clientY-drag.y; drag.x = e.clientX; drag.y = e.clientY;
+  if (drag.pan){ const s = cam.r*0.0016, right = new THREE.Vector3().setFromMatrixColumn(camera.matrix,0); cam.target.addScaledVector(right,-dx*s); cam.target.y += dy*s; }
+  else { cam.th -= dx*0.006; cam.ph = Math.min(1.5,Math.max(0.15,cam.ph-dy*0.006)); }
+});
+el.addEventListener('pointerleave', () => { mouse.x = 2; mouse.y = 2; view.classList.remove('active'); label.style.display = 'none'; });
+el.addEventListener('wheel', e => { if (!view.classList.contains('active') && !document.fullscreenElement) return; e.preventDefault(); cam.r = Math.min(30,Math.max(3,cam.r*(1+e.deltaY*0.001))); }, {passive:false});
+const ray = new THREE.Raycaster(), label = document.getElementById('label');
+function hover(){
+  ray.setFromCamera(mouse,camera); const hit = ray.intersectObjects(named,false)[0];
+  if (hit && !drag){ label.style.display = 'block'; label.textContent = hit.object.userData.name; label.style.left = (mouse.px+14)+'px'; label.style.top = (mouse.py+14)+'px'; }
+  else label.style.display = 'none';
+}
+
+/* ===================== LOOP ===================== */
+function resize(){ const w = view.clientWidth || 800, h = view.clientHeight || 500; renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize',resize); if (window.ResizeObserver) new ResizeObserver(resize).observe(view); resize();
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05,(now-last)/1000); last = now;
+  try {
+    if (live && now - lastMsg > CONFIG.STALE_MS){ live = false; resetSim(); setConn(); }
+    if (!live) simulate(dt);
+    applyTags(dt); updateUI(); placeCamera();
+    try { hover(); } catch(e){ label.style.display = 'none'; }
+    renderer.render(scene,camera);
+  } catch(e){ if (!loop.err){ loop.err = 1; var d = document.getElementById('err'); d.style.display = 'block'; d.textContent += 'LOOP ERROR: ' + e.message + '\n' + (e.stack||'') + '\n'; } }
+  requestAnimationFrame(loop);
+}
+connectLive(); setConn(); requestAnimationFrame(loop);
+
+</script>
+
+<script>
+/* ===================== DASHBOARD LOGIC ===================== */
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+const P2 = n => String(n).padStart(2,'0');
+const lsGet = (k,d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch(e){ return d; } };
+const lsSet = (k,v) => { try { localStorage.setItem(k,v); } catch(e){} };
+const STEP_NAMES = ['zero','first','second','third','fourth','fifth','sixth','seventh','eighth','nineth'];
+const STEP_TXT = ['Wait for tile','Entry delay timer','Stop tiles + clamp ON','Move forward (print →)','Direction delay','Move reverse (print ←)','Increment loop counter','Direction delay','Safety delay','Stop tiles + clamp OFF'];
+
+/* ---------- static content ---------- */
+const GALLERY = [
+  ['assets/photo-machine-frame.jpg','Machine frame (green DK3)','Machine'], ['assets/photo-screen-frame.jpg','Screen frame – operator view','Machine'],
+  ['assets/photo-carriage-rails.jpg','Carriage rails & belt','Machine'], ['assets/photo-sensor-post.jpg','Sensor post at the line','Machine'],
+  ['assets/photo-control-cabinet.jpg','Control cabinet wiring','Electrical'], ['assets/photo-cabinet-open.jpg','Control cabinet (open)','Electrical'],
+  ['assets/photo-panel.jpg','Operator panel','Electrical'], ['assets/photo-vfd.jpg','VFD power unit','Electrical'],
+  ['assets/hmi-operation.jpg','HMI · Operation screen','HMI'], ['assets/hmi-auto.jpg','HMI · Auto screen','HMI'],
+  ['assets/hmi-manual.jpg','HMI · Manual screen','HMI'], ['assets/hmi-alarms.jpg','HMI · Alarms screen','HMI'],
+  ['assets/block-diagram.jpg','Automation & control block diagram','Diagrams'], ['assets/plc-code-flow.jpg','PLC code flow (SFC)','Diagrams']
+];
+const DOCS = [
+  ['assets/block-diagram.jpg','Automation block diagram','Inputs, PLC, actuators'], ['assets/plc-code-flow.jpg','PLC code flow (SFC S0–S9)','Sequence of operation'],
+  ['assets/hmi-operation.jpg','HMI screens','Operation / Auto / Manual / Alarms']
+];
+const SPEC = [['Machine','DK3 Extrem screen printer'],['Application','Ceramic tile screen printing'],['PLC','OMRON CP1E'],['HMI','OMRON NS5 touch panel'],['Drive','Yaskawa V1000 VFD + AC motor'],
+  ['Actuators','Stop-tiles valve · side clamp · brush piston · screen lift'],['Sensors','Entrance photocell · L/R proximity · screen up/down'],['Link to dashboard','Modbus RTU → Node-RED → WebSocket']];
+const PROJECT = [['Project title','PLC control & IIoT digital twin of a tile printing machine'],['Team','— add names —'],['Supervisor','— add name —'],['University / Year','— add —']];
+$('#specTbl').innerHTML = SPEC.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+$('#projTbl').innerHTML = PROJECT.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+$('#docList').innerHTML = DOCS.map((d,i) => `<div class="doc" data-i="${i}"><img src="${d[0]}" alt=""><div><b>${d[1]}</b><span>${d[2]}</span></div></div>`).join('');
+$('#steps').innerHTML = STEP_TXT.map((t,i) => `<div class="step" id="st${i}"><i>S${i}</i>${t}</div>`).join('');
+
+/* ---------- gallery + lightbox ---------- */
+let galCat = 'All', lbList = [], lbIdx = 0;
+const cats = ['All', ...Array.from(new Set(GALLERY.map(g => g[2])))];
+function renderGal(){
+  $('#galF').innerHTML = cats.map(c => `<button class="chipb ${c===galCat?'on':''}" data-c="${c}">${c}</button>`).join('');
+  lbList = GALLERY.filter(g => galCat === 'All' || g[2] === galCat);
+  $('#gal').innerHTML = lbList.map((g,i) => `<div class="gi" data-i="${i}"><img loading="lazy" src="${g[0]}" alt="${g[1]}" onerror="this.parentNode.style.display='none'"><span>${g[1]}</span></div>`).join('');
+}
+function openLb(list,i){ lbList = list; lbIdx = i; showLb(); $('#lb').classList.add('on'); }
+function showLb(){ const g = lbList[lbIdx]; $('#lbI').src = g[0]; $('#lbT').textContent = g[1]; }
+$('#galF').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b){ galCat = b.dataset.c; renderGal(); } });
+$('#gal').addEventListener('click', e => { const b = e.target.closest('.gi'); if (b) openLb(lbList, +b.dataset.i); });
+$('#docList').addEventListener('click', e => { const b = e.target.closest('.doc'); if (b){ const g = DOCS.map(d => [d[0],d[1]]); openLb(g, +b.dataset.i); } });
+$('#lbX').onclick = () => $('#lb').classList.remove('on');
+$('#lbP').onclick = () => { lbIdx = (lbIdx + lbList.length - 1) % lbList.length; showLb(); };
+$('#lbN').onclick = () => { lbIdx = (lbIdx + 1) % lbList.length; showLb(); };
+addEventListener('keydown', e => { if (!$('#lb').classList.contains('on')) return; if (e.key === 'Escape') $('#lbX').click(); if (e.key === 'ArrowLeft') $('#lbP').click(); if (e.key === 'ArrowRight') $('#lbN').click(); });
+$('#lb').addEventListener('click', e => { if (e.target.id === 'lb') $('#lbX').click(); });
+renderGal();
+
+/* ---------- PDF viewer ---------- */
+$('#pdfIn').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return; const url = URL.createObjectURL(f);
+  const o = $('#pdfObj'); o.data = url; $('#pdfOpen').href = url; $('#pdfEmpty').style.display = 'none';
+});
+
+/* ---------- toast ---------- */
+function toast(t){ const d = document.createElement('div'); d.textContent = t; $('#toast').appendChild(d); setTimeout(() => d.remove(), 3800); }
+
+/* ---------- clock / nav ---------- */
+function tickClock(){ const d = new Date(); $('#clock').firstChild.nodeValue = P2(d.getHours()) + ':' + P2(d.getMinutes()) + ':' + P2(d.getSeconds()) + ' '; $('#date').textContent = d.toLocaleDateString(undefined,{day:'2-digit',month:'short'}); }
+setInterval(tickClock, 1000); tickClock();
+const links = $$('#nav a'), secs = links.map(a => $(a.getAttribute('href')));
+if ('IntersectionObserver' in window){
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin:'-30% 0px -60% 0px' });
+  secs.forEach(s => s && io.observe(s));
+}
+
+/* ---------- 3D viewer controls ---------- */
+$$('[data-view]').forEach(b => b.onclick = () => twinCtl.view(b.dataset.view));
+const card = $('#twinCard');
+$('#btnFs').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else if (card.requestFullscreen) card.requestFullscreen(); else toast('Full screen is not supported by this browser'); };
+document.addEventListener('fullscreenchange', () => { $('#btnFs').textContent = document.fullscreenElement ? '✕ Exit full screen' : '⛶ Full screen'; });
+
+/* ---------- control ---------- */
+let remoteOn = false;
+const CMD_BIT = { start:0, stop:1, reset:5 };
+function act(name){
+  if (!live){ twinCtl[name](); toast('Simulation: ' + name); return; }
+  if (!remoteOn){ toast('Remote control is OFF – enable the switch first'); return; }
+  if (twinCtl.send({ cmd:'bit', bit:CMD_BIT[name] })) toast('Command sent to PLC: ' + name.toUpperCase() + ' (needs ENABLE_REMOTE in Node-RED)');
+  else toast('Not connected to Node-RED');
+}
+$('#bStart').onclick = () => act('start'); $('#bStop').onclick = () => act('stop'); $('#bReset').onclick = () => { act('reset'); if (!live) S.reset(); };
+$('#bSafe').onclick = () => { twinCtl.safety(); };
+// full-screen copies of the controls
+$('#fsStart').onclick = () => act('start'); $('#fsStop').onclick = () => act('stop'); $('#fsReset').onclick = () => $('#bReset').click();
+$('#fsSafe').onclick = () => twinCtl.safety();
+$('#fsNr').addEventListener('input', e => { $('#nr').value = e.target.value; });
+$('#fsSet').onclick = () => { $('#nr').value = $('#fsNr').value; $('#bLoops').click(); };
+$('#fsRemote').addEventListener('change', e => { const m = $('#remote'); m.checked = e.target.checked; m.dispatchEvent(new Event('change')); e.target.checked = m.checked; });
+$('#bLoops').onclick = () => {
+  const n = Math.max(1, Math.min(99, Math.round(+$('#nr').value || 1)));
+  if (!live){ toast('Simulated rounds = ' + n); return; }
+  if (!remoteOn){ toast('Remote control is OFF'); return; }
+  toast(twinCtl.send({ cmd:'loops', value:n }) ? 'Rounds sent: ' + n : 'Not connected to Node-RED');
+};
+$('#remote').addEventListener('change', e => {
+  if (e.target.checked && !confirm('Allow this dashboard to send START / STOP / RESET commands to the REAL machine?\n\nMake sure the area around the machine is clear.')){ e.target.checked = false; return; }
+  remoteOn = e.target.checked; $('#remChip').textContent = 'Remote: ' + (remoteOn ? 'ON' : 'OFF'); $('#remChip').style.color = remoteOn ? 'var(--acc)' : '';
+});
+
+/* ---------- settings ---------- */
+const dlg = $('#dlg');
+$('#btnSet').onclick = () => { $('#sWs').value = lsGet('dash_ws', CONFIG.WS_URL || ''); $('#sSim').checked = lsGet('dash_sim','0') === '1'; $('#sTgt').value = S.target; dlg.showModal(); };
+$('#sCancel').onclick = () => dlg.close();
+$('#sSave').onclick = () => {
+  const ws = $('#sWs').value.trim(); if (ws) lsSet('dash_ws', ws); else try { localStorage.removeItem('dash_ws'); } catch(e){}
+  lsSet('dash_sim', $('#sSim').checked ? '1' : '0'); lsSet('dash_target', String(Math.max(1, +$('#sTgt').value || 15)));
+  dlg.close(); location.href = location.pathname;
+};
+
+/* ---------- statistics ---------- */
+const S = {
+  target: +lsGet('dash_target','15') || 15, cycles:[], perMin:[], timeline:[], log:[], alarmEvents:0,
+  runAcc:0, lastRunAcc:0, lastCount:null, runSec:0, totSec:0, bestAll:null, worstAll:null, t0:Date.now(), lastTick:performance.now(), prev:{}, wasLive:false,
+  reset(){ this.cycles = []; this.perMin = []; this.timeline = []; this.lastCount = null; this.runAcc = this.lastRunAcc = 0; this.runSec = this.totSec = 0; this.bestAll = this.worstAll = null; this.alarmEvents = 0; this.t0 = Date.now(); addLog('info','Statistics reset'); }
+};
+$('#tgtTxt').textContent = S.target;
+function addLog(type,msg){
+  const d = new Date(); S.log.unshift({ t:P2(d.getHours()) + ':' + P2(d.getMinutes()) + ':' + P2(d.getSeconds()), d:d.toISOString(), type, msg });
+  if (S.log.length > 300) S.log.pop(); renderLog();
+}
+function renderLog(){
+  const f = $('#logF').value;
+  const rows = S.log.filter(r => f === 'all' || r.type === f);
+  $('#logBody').innerHTML = rows.slice(0,150).map(r => `<tr><td>${r.t}</td><td><span class="bdg ${r.type}">${{info:'info',ok:'prod',warn:'warn',err:'alarm'}[r.type]}</span></td><td>${r.msg}</td></tr>`).join('') || '<tr><td colspan="3" style="color:var(--dim)">No events</td></tr>';
+}
+$('#logF').onchange = renderLog;
+$('#logClr').onclick = () => { S.log = []; renderLog(); };
+$('#logCsv').onclick = () => {
+  const csv = 'timestamp,type,message\n' + S.log.slice().reverse().map(r => `${r.d},${r.type},"${r.msg.replace(/"/g,'""')}"`).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = 'machine-events.csv'; a.click();
+};
+
+const ALARM_DEFS = [['over_run_alarm','Over-run alarm'],['system_connection_alarm','System connection alarm'],['Drive_alarm','Drive alarm'],['Drive_error','VFD drive error'],['safety_sensor','Safety sensor tripped']];
+function activeAlarms(){
+  const a = ALARM_DEFS.filter(d => tags[d[0]]).map(d => d[1]);
+  if (live && tags.plc_alive === false) a.push('PLC link lost');
+  return a;
+}
+const mean = a => a.length ? a.reduce((x,y) => x + y, 0) / a.length : 0;
+const avgCycle = () => mean(S.cycles.slice(-10));
+
+/* 4 Hz logic tick */
+function tick(){
+  const now = performance.now(), dt = Math.min(1,(now - S.lastTick)/1000); S.lastTick = now;
+  if (tags.sys_on) S.runAcc += dt;
+  // mode change
+  if (live !== S.wasLive){ S.wasLive = live; S.lastCount = null; addLog(live ? 'ok' : 'warn', live ? 'Switched to LIVE PLC data' : 'PLC data lost – back to simulation'); }
+  // tile completed
+  const c = +tags.count || 0;
+  if (S.lastCount === null){ S.lastCount = c; S.lastRunAcc = S.runAcc; }
+  else if (c > S.lastCount){
+    const n = c - S.lastCount, ct = (S.runAcc - S.lastRunAcc) / n;
+    for (let i = 0; i < n; i++){ S.cycles.push(ct); S.perMin.push(Date.now()); }
+    if (S.cycles.length > 200) S.cycles.splice(0, S.cycles.length - 200);
+    if (S.perMin.length > 2000) S.perMin.splice(0, S.perMin.length - 2000);
+    S.bestAll = S.bestAll === null ? ct : Math.min(S.bestAll, ct); S.worstAll = S.worstAll === null ? ct : Math.max(S.worstAll, ct);
+    addLog('ok','Tile #' + c + ' finished · cycle ' + ct.toFixed(1) + ' s');
+    S.lastCount = c; S.lastRunAcc = S.runAcc;
+  } else if (c < S.lastCount){ S.lastCount = c; S.lastRunAcc = S.runAcc; }
+  // edges
+  const p = S.prev, al = activeAlarms();
+  if (p.sys_on !== undefined && p.sys_on !== !!tags.sys_on) addLog(tags.sys_on ? 'ok' : 'warn', tags.sys_on ? 'Machine started' : 'Machine stopped');
+  ALARM_DEFS.forEach(d => { if (tags[d[0]] && !p[d[0]]){ S.alarmEvents++; addLog('err', d[1]); } });
+  if (live && tags.plc_alive === false && p.plc_alive !== false) { S.alarmEvents++; addLog('err','PLC link lost (no Modbus traffic)'); }
+  if (live && tags.plc_alive !== false && p.plc_alive === false) addLog('ok','PLC link restored');
+  S.prev = { sys_on:!!tags.sys_on, plc_alive:tags.plc_alive };
+  ALARM_DEFS.forEach(d => S.prev[d[0]] = !!tags[d[0]]);
+  render(al);
+}
+
+/* ---------- DOM render ---------- */
+const setT = (id,v) => { const e = document.getElementById(id); if (e && e.textContent !== String(v)) e.textContent = v; };
+function setRing(id,pct){ const e = document.getElementById(id); if (e) e.style.strokeDasharray = Math.max(0,Math.min(100,pct)).toFixed(1) + ' 100'; }
+function render(al){
+  const fault = al.length > 0, run = !!tags.sys_on;
+  const word = fault ? (live && tags.plc_alive === false ? 'LINK LOST' : 'FAULT') : (run ? 'RUNNING' : 'STOPPED');
+  const k = $('#kStatus'); k.className = 'card kpi status ' + (fault ? 'fault' : run ? 'run' : 'stop');
+  setT('kStatusV', word); setT('kStatusS', 'Mode ' + (tags.auto ? 'AUTO' : tags.manual ? 'MANUAL' : (live ? '–' : (run ? 'AUTO' : '–'))));
+  const cnt = +tags.count || 0, avg = avgCycle(), thr = avg > 0 ? 3600 / avg : 0, last = S.cycles.length ? S.cycles[S.cycles.length-1] : null;
+  setT('kTiles', cnt); setT('kTilesS', live ? 'from PLC counter' : 'simulated');
+  setT('kThr', thr ? thr.toFixed(0) : '0'); setT('kThrS', avg ? 'based on last ' + Math.min(10,S.cycles.length) + ' tiles' : 'waiting for data');
+  setT('kCyc', avg ? avg.toFixed(1) : '–'); setT('kCycS', 'best ' + (S.bestAll === null ? '–' : S.bestAll.toFixed(1)) + ' · last ' + (last === null ? '–' : last.toFixed(1)));
+  const av = S.totSec ? S.runSec / S.totSec * 100 : 0; setT('kAv', av.toFixed(0)); $('#kAvBar').style.width = av + '%';
+  setT('kAl', al.length); $('#kAlarm').className = 'card kpi' + (al.length ? ' fault' : ''); setT('kAlS', al.length ? al[0] + (al.length > 1 ? ' +' + (al.length-1) : '') : 'All clear');
+  // twin side
+  const mode = live ? (tags.plc_alive === false ? 'PLC LINK LOST' : 'LIVE · PLC') : 'SIMULATION';
+  setT('hudMode', mode); setT('hudTiles', cnt); setT('hudLoops', (tags.done_loops||0) + ' / ' + (tags.desired_loops||0));
+  setT('hudState', live ? ('Steps: ' + ((tags.steps && tags.steps.length) ? tags.steps.join(', ') : 'none')) : (tags.safety_sensor ? 'SAFETY STOP' : (run ? STATE_TXT[st] : 'Stopped')));
+  setT('ovSub', mode + ' · ' + new Date().toLocaleTimeString()); setT('ftMode', 'Mode: ' + mode.toLowerCase()); setT('ctlMode', live ? 'Live PLC' : 'Simulation');
+  $('#safeRow').style.display = live ? 'none' : ''; $('#remRow').style.display = live ? '' : 'none';
+  $('#fsSafeRow').style.display = live ? 'none' : ''; $('#fsRemRow').style.display = live ? '' : 'none';
+  const fn = $('#fsNr'); if (document.activeElement !== fn) fn.value = $('#nr').value;
+  if ($('#fsRemote').checked !== remoteOn) $('#fsRemote').checked = remoteOn;
+  const nr = $('#nr'); if (live && document.activeElement !== nr && tags.desired_loops) nr.value = tags.desired_loops;
+  const dn = +tags.done_loops || 0, ds = +tags.desired_loops || 0; setT('loopTxt', dn + ' / ' + ds); const lp = ds ? dn / ds * 100 : 0; setRing('rLoop', lp); setT('rLoopT', Math.round(lp) + '%');
+  STEP_NAMES.forEach((n,i) => { const e = document.getElementById('st' + i); if (e) e.classList.toggle('on', !!(tags.steps && tags.steps.indexOf(n) >= 0)); });
+  // alarms list
+  $('#alList').innerHTML = ALARM_DEFS.map(d => `<div class="it ${tags[d[0]] ? 'act' : ''}">${d[1]}</div>`).join('') + (live && tags.plc_alive === false ? '<div class="it act">PLC link lost</div>' : '');
+  setT('alSub', al.length + ' active');
+  // I/O
+  [...INPUTS, ...OUTPUTS, ...ALARMS].forEach(r => { const e = document.getElementById('t_' + r[0]); if (e) e.classList.toggle('on', !!tags[r[0]]); });
+  const sec = x => (+x || 0).toFixed(1) + ' s'; setT('t_te', sec(tags.t_entry)); setT('t_tl', sec(tags.t_dl)); setT('t_tr', sec(tags.t_dr)); setT('t_ts', sec(tags.t_safe));
+  // process table
+  setT('vState', tags.Drive_error || tags.Drive_alarm ? 'ERROR' : tags.forward ? 'FORWARD' : tags.reverse ? 'REVERSE' : 'STOP');
+  setT('vPos', tags.right_proximity ? 'Right end' : tags.left_proximity ? 'Left end' : 'Travelling');
+  setT('vScr', tags.down_screen_sensor ? 'Down' : (tags.screen_up || tags.screen_up_2) ? 'Up' : 'Moving');
+  setT('vVal', (tags.clamp ? 'On' : 'Off') + ' / ' + (tags.stop_tiles ? 'On' : 'Off')); setT('vPis', tags.piston ? 'Down' : 'Up'); setT('vErr', tags.Drive_error || tags.Drive_alarm ? 'FAULT' : 'None');
+  // summary
+  const up = Math.round((Date.now() - S.t0)/1000), fmt = s => P2(Math.floor(s/3600)) + ':' + P2(Math.floor(s/60) % 60) + ':' + P2(s % 60);
+  const perf = avg > 0 ? Math.min(100, S.target / avg * 100) : 0; setRing('rPerf', perf); setT('rPerfT', avg ? Math.round(perf) + '%' : '–');
+  $('#sumTbl').innerHTML = [['Session time', fmt(up)],['Running time', fmt(Math.round(S.runSec))],['Tiles finished', cnt],['Best / worst cycle', (S.bestAll === null ? '–' : S.bestAll.toFixed(1)) + ' / ' + (S.worstAll === null ? '–' : S.worstAll.toFixed(1)) + ' s'],['Alarm events', S.alarmEvents],['Data source', live ? 'Node-RED / PLC' : 'Simulation']].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+
+/* ---------- charts ---------- */
+function fit(cv){ const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); const w = Math.max(10, Math.round(r.width)), h = Math.max(10, Math.round(r.height)); if (cv.width !== w*d || cv.height !== h*d){ cv.width = w*d; cv.height = h*d; } const g = cv.getContext('2d'); g.setTransform(d,0,0,d,0,0); return { g, w, h }; }
+function bars(cv, vals, o){
+  const { g, w, h } = fit(cv); g.clearRect(0,0,w,h);
+  const L = 34, B = 20, T = 8, max = Math.max(o.min || 1, ...vals, o.line || 0) * 1.15, cw = w - L - 6, ch = h - B - T;
+  g.font = '600 10px Montserrat,system-ui,sans-serif'; g.fillStyle = '#8d95a3'; g.strokeStyle = '#2b3039'; g.lineWidth = 1; g.textAlign = 'right';
+  for (let i = 0; i <= 4; i++){ const y = T + ch - ch * i / 4; g.beginPath(); g.moveTo(L,y); g.lineTo(w-6,y); g.stroke(); g.fillText((max * i / 4).toFixed(max < 6 ? 1 : 0), L - 6, y + 3); }
+  if (!vals.length){ g.textAlign = 'center'; g.fillStyle = '#5d6572'; g.fillText('No data yet – waiting for finished tiles', L + cw/2, T + ch/2); return; }
+  const n = o.slots || vals.length, bw = cw / n;
+  vals.forEach((v,i) => { const x = L + (n - vals.length + i) * bw, bh = v / max * ch; g.fillStyle = o.color; g.fillRect(x + 1.5, T + ch - bh, Math.max(1, bw - 3), bh); });
+  if (o.line){ const y = T + ch - o.line / max * ch; g.strokeStyle = '#3ddc84'; g.setLineDash([5,4]); g.beginPath(); g.moveTo(L,y); g.lineTo(w-6,y); g.stroke(); g.setLineDash([]); }
+  g.fillStyle = '#5d6572'; g.textAlign = 'center'; g.fillText(o.xl, L + cw/2, h - 5);
+}
+function timeline(cv){
+  const { g, w, h } = fit(cv); g.fillStyle = '#1a1d23'; g.fillRect(0,0,w,h);
+  const t = S.timeline, n = 600, sw = w / n; t.forEach((v,i) => { g.fillStyle = v === 2 ? '#ff4d4d' : v === 1 ? '#3ddc84' : '#3a3f48'; g.fillRect((n - t.length + i) * sw, 0, Math.ceil(sw), h); });
+}
+function charts(){
+  bars($('#cCycle'), S.cycles.slice(-30), { color:'#ffc400', line:S.target, min:S.target, slots:30, xl:'oldest → newest' });
+  const now = Date.now(), b = new Array(30).fill(0); S.perMin.forEach(t => { const m = Math.floor((now - t) / 60000); if (m >= 0 && m < 30) b[29 - m]++; });
+  bars($('#cThr'), S.perMin.length ? b : [], { color:'#4da3ff', min:4, slots:30, xl:'30 min ago → now' });
+  timeline($('#cTl'));
+}
+setInterval(() => {
+  const al = activeAlarms(); S.totSec++; if (tags.sys_on) S.runSec++;
+  S.timeline.push(al.length ? 2 : tags.sys_on ? 1 : 0); if (S.timeline.length > 600) S.timeline.shift();
+  charts();
+}, 1000);
+addEventListener('resize', charts);
+
+/* ---------- start ---------- */
+addLog('info', 'Dashboard started – ' + (CONFIG.WS_URL ? 'trying ' + CONFIG.WS_URL : 'simulation only'));
+S.prev = { sys_on:false }; renderLog(); setInterval(tick, 250); tick(); charts();
+})();
+</script>
+</body>
+</html>
